@@ -17,6 +17,14 @@ export interface VerifyPayload {
   otp: string;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  password: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;

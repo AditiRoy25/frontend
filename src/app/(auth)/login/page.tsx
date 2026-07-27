@@ -245,31 +245,6 @@ export default function LoginPage() {
                     }
                   />
 
-                  <Box
-                    sx={{
-                      textAlign:
-                        "right",
-                      mt: 1,
-                      mb: 3,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        color:
-                          "primary.main",
-                        cursor:
-                          "pointer",
-                      }}
-                      onClick={() =>
-                        router.push(
-                          "/forgot-password"
-                        )
-                      }
-                    >
-                      Forgot Password?
-                    </Typography>
-                  </Box>
-
                   <Button
                     fullWidth
                     variant="contained"
@@ -284,6 +259,16 @@ export default function LoginPage() {
                     {isLoading
                       ? "Logging In..."
                       : "Login"}
+                  </Button>
+
+                  <Button
+                    fullWidth
+                    type="button"
+                    variant="text"
+                    onClick={() => router.push("/forgot-password")}
+                    sx={{ mt: 1 }}
+                  >
+                    Forgot password?
                   </Button>
                 </form>
 

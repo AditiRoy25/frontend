@@ -4,8 +4,9 @@ import {
   LoginPayload,
   RegisterPayload,
   VerifyPayload,
-  
-  
+
+  ForgotPasswordPayload,
+  ResetPasswordPayload,
 } from "../../types/auth.types";
 
 export const authApi =
@@ -80,7 +81,7 @@ export const authApi =
         }),
 
 
-        resendOTP:
+      resendOTP:
 builder.mutation({
   query: (email:string) => ({
     url: "/resend-otp",
@@ -88,6 +89,21 @@ builder.mutation({
     body: { email },
   }),
 }),
+      forgotPassword: builder.mutation({
+        query: (data: ForgotPasswordPayload) => ({
+          url: "/forgot-password",
+          method: "POST",
+          body: data,
+        }),
+      }),
+
+      resetPassword: builder.mutation({
+        query: ({ token, password }: ResetPasswordPayload & { token: string }) => ({
+          url: `/reset-password/${token}`,
+          method: "POST",
+          body: { password },
+        }),
+      }),
     }),
   });
 
@@ -95,5 +111,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useVerifyEmailMutation,
-  useResendOTPMutation
+  useResendOTPMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApi;
