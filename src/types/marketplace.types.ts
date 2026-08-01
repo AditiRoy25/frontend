@@ -4,6 +4,11 @@
    PRODUCT
 =========================== */
 
+export type ProductStatus =
+  | "available"
+  | "out_of_stock"
+  | "inactive";
+
 export type ProductCategory =
   | "tractor"
   | "harvester"
@@ -32,9 +37,13 @@ export interface Product {
 
   description?: string;
 
+   status: ProductStatus;
+  
+
   createdAt: string;
 
   updatedAt: string;
+
 }
 
 export interface ProductResponse {
@@ -101,3 +110,21 @@ export interface OrdersResponse {
   message?: string;
   orders: Order[];
 }
+
+export interface CreateProductPayload {
+  name: string;
+
+  description: string;
+
+  price: number;
+
+  category: string;
+
+  stock: number;
+
+  image?: File | string;
+  status: ProductStatus;
+}
+
+export type UpdateProductPayload =
+  Partial<CreateProductPayload>;

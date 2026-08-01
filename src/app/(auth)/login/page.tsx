@@ -74,12 +74,12 @@ export default function LoginPage() {
         })
       );
 
-      router.push(
-        roleRoutes[
-          res.user
-            .role as keyof typeof roleRoutes
-        ]
-      );
+      const role = res.user.role.trim().toLowerCase();
+      const destination =
+        roleRoutes[role as keyof typeof roleRoutes] ??
+        "/farmer/dashboard";
+
+      router.replace(destination);
     } catch (error) {
       console.log(error);
     }
@@ -161,7 +161,7 @@ export default function LoginPage() {
 
             <Box
               component="img"
-              src="/images/login-farmer.png"
+              src="/images/farmer-login.avif"
               alt="Farmer"
               sx={{
                 width: "100%",

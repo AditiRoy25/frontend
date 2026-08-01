@@ -1,92 +1,182 @@
 "use client";
 
-import Navbar from "@/src/components/common/Navbar";
-import Footer from "@/src/components/common/Footer";
-
-import ProductGallery from "@/src/components/marketplace/ProductGallery";
-import ProductInfo from "@/src/components/marketplace/ProductInfo";
-import ProductDescription from "@/src/components/marketplace/ProductDescription";
-// import RelatedProducts from "@/src/components/marketplace/RelatedProducts";
+import { useState } from "react";
 
 import {
   Box,
+  Button,
   Container,
   Grid,
+  Stack,
   Typography,
 } from "@mui/material";
 
-import { useParams } from "next/navigation";
-import { useGetProductQuery } from "../../../redux/api/maketplaceApi";
+import FilterListIcon from "@mui/icons-material/FilterList";
 
-export default function ProductDetailsPage() {
-  const params = useParams();
+import HeroBanner from "@/components/marketplace/HeroBanner";
+import SearchBar from "@/components/marketplace/SearchBar";
+import CategorySidebar from "@/components/marketplace/CategorySidebar";
+import CategoryCards from "@/components/marketplace/CategoryCards";
+import ProductGrid from "@/components/marketplace/ProductGrid";
+import ProductSkeleton from "@/components/marketplace/ProductSkeleton";
+import FeatureSection from "@/components/marketplace/FeatureSection";
+import FilterDrawer from "@/components/marketplace/FilterDrawer";
 
-  const { data, isLoading, error } = useGetProductQuery(
-    params.id as string
-  );
+import {
+  Product,
+  ProductCategory,
+  ProductStatus,
+} from "@/types/marketplace.types";
 
-  if (isLoading) {
-    return (
-      <Container sx={{ py: 10 }}>
-        <Typography>Loading...</Typography>
-      </Container>
-    );
-  }
+import { useGetProductsQuery } from "@/redux/api/marketplaceApi";
 
-  if (error || !data?.product) {
-    return (
-      <Container sx={{ py: 10 }}>
-        <Typography color="error">
-          Product not found.
-        </Typography>
-      </Container>
-    );
-  }
+export default function MarketplacePage() {
+  const [search, setSearch] = useState("");
 
-  const product = data.product;
+  const [category, setCategory] =
+    useState<ProductCategory | "">("");
+
+  const [status, setStatus] =
+    useState<ProductStatus | "">("");
+
+  const [sort, setSort] =
+    useState("");
+
+  const [drawerOpen, setDrawerOpen] =
+    useState(false);
+
+  const {
+    data,
+    isLoading,
+  } = useGetProductsQuery({
+    search,
+    category,
+  });
+
+  const handleAddToCart = (
+    product: Product
+  ) => {
+    console.log(product);
+  };
 
   return (
-    <>
-      <Navbar />
+    <Container
+      maxWidth="xl"
+      sx={{
+        py: 4,
+      }}
+    >
+      <Stack spacing={5}>
+        <HeroBanner />
 
-      <Box sx={{ py: 8 }}>
-        <Container maxWidth="xl">
-          <Grid
-            container
-            spacing={5}
+        <SearchBar
+          onSearch={setSearch}
+        />
+
+        <CategoryCards
+          selectedCategory={
+            category
+          }
+          onCategoryChange={
+            setCategory
+          }
+        />
+
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Typography
+            variant="h4"
+            fontWeight={700}
           >
-            <Grid
-              size={{
-                xs: 12,
-                md: 6,
-              }}
-            >
-              <ProductGallery
-                images={product.images}
-              />
-            </Grid>
+            Marketplace
+          </Typography>
 
-            <Grid
-              size={{
-                xs: 12,
-                md: 6,
-              }}
-            >
-              <ProductInfo
-                product={product}
-              />
-            </Grid>
+          <Button
+            variant="outlined"
+            startIcon={
+              <FilterListIcon />
+            }
+            onClick={() =>
+              setDrawerOpen(true)
+            }
+          >
+            Filters
+          </Button>
+        </Stack>
+
+        <Grid
+          container
+          spacing={3}
+        >
+          <Grid
+            size={{
+              xs: 12,
+              md: 3,
+            }}
+          >
+            <CategorySidebar
+              selectedCategory={
+                category
+              }
+              onCategoryChange={
+                setCategory
+              }
+            />
           </Grid>
 
-          <ProductDescription
-            product={product}
-          />
+          <Grid
+            size={{
+              xs: 12,
+              md: 9,
+            }}
+          >
+            {isLoading ? (
+              <ProductSkeleton
+                count={8}
+              />
+            ) : (
+              <ProductGrid
+                products={
+                  data?.products ??
+                  []
+                }
+                onAddToCart={
+                  handleAddToCart
+                }
+              />
+            )}
+          </Grid>
+        </Grid>
 
-          {/* <RelatedProducts /> */}
-        </Container>
-      </Box>
+        <FeatureSection />
+      </Stack>
 
-      <Footer />
-    </>
+      <FilterDrawer
+        open={drawerOpen}
+        onClose={() =>
+          setDrawerOpen(false)
+        }
+        category={category}
+        status={status}
+        sort={sort}
+        onCategoryChange={
+          setCategory
+        }
+        onStatusChange={
+          setStatus
+        }
+        onSortChange={
+          setSort
+        }
+        onReset={() => {
+          setCategory("");
+          setStatus("");
+          setSort("");
+        }}
+      />
+    </Container>
   );
 }

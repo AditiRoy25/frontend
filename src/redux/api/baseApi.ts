@@ -3,49 +3,78 @@ import {
   fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
 
+import Cookies from "js-cookie";
+
+// =====================================
+// BASE QUERY
+// =====================================
+
 const baseQuery = fetchBaseQuery({
-  baseUrl:
-    process.env.NEXT_PUBLIC_API_URL +
-    "/api/v1",
+  baseUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
 
-  prepareHeaders: (
-    headers
-  ) => {
-    const token =
+  // Useful if backend also uses cookies
+  credentials: "include",
+
+  // =====================================
+  // ATTACH ACCESS TOKEN
+  // =====================================
+
+  prepareHeaders: (headers) => {
+    const accessToken =
       typeof window !== "undefined"
-        ? localStorage.getItem(
-            "accessToken"
-          )
-        : null;
+        ? Cookies.get("accessToken")
+        : undefined;
 
-    if (token) {
+    if (accessToken) {
       headers.set(
         "Authorization",
-        `Bearer ${token}`
+        `Bearer ${accessToken}`
       );
     }
+
+    headers.set(
+      "Accept",
+      "application/json"
+    );
 
     return headers;
   },
 });
 
-export const baseApi =
-  createApi({
-    reducerPath: "baseApi",
+// =====================================
+// BASE API
+// =====================================
 
-    baseQuery,
+export const baseApi = createApi({
+  reducerPath: "baseApi",
 
-    tagTypes: [
-      "Auth",
-      "User",
-      "Farm",
-      "Seed",
-      "Marketplace",
-      "Course",
-      "NGO",
-      "Report",
-      "Contact"
-    ],
+  baseQuery,
 
-    endpoints: () => ({}),
-  });
+  tagTypes: [
+    "Auth",
+    "Users",
+    "Farm",
+    "Seed",
+    "Marketplace",
+    "Course",
+    "NGOs",
+    "Report",
+    "Contact",
+    "Profile",
+    "Dashboard",
+    "Learning",
+    "Notification",
+    "Scheme",
+    "Help",
+    "Farmers",
+    "Reports",
+    "Ai",
+    "Weather",
+    "Allowances",
+    "Analytics",
+    "Statistics",
+    "Workshops",
+  ],
+
+  endpoints: () => ({}),
+});

@@ -1,170 +1,150 @@
 "use client";
 
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import StarIcon from "@mui/icons-material/Star";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Link from "next/link";
+
 import {
   Box,
   Button,
   Card,
+  CardActions,
   CardContent,
+  CardMedia,
   Chip,
-  IconButton,
-  Rating,
+  Stack,
   Typography,
 } from "@mui/material";
 
-interface ProductProps {
-  product: {
-    _id: string;
-    name: string;
-    image: string;
-    category: string;
-    price: number;
-    originalPrice: number;
-    rating: number;
-    seller: string;
-    discount: number;
-  };
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+
+import { Product } from "@/types/marketplace.types";
+
+interface ProductCardProps {
+  product: Product;
+  onAddToCart?: (product: Product) => void;
 }
 
 export default function ProductCard({
   product,
-}: ProductProps) {
-  return (
+  onAddToCart,
+}: ProductCardProps) {
+  const image =
+    product.images?.length > 0
+      ? product.images[0]
+      : "/images/product-placeholder.png";
 
-    <Link href={`/marketplace/${product._id}`}>
+  return (
     <Card
       sx={{
-        borderRadius: 4,
         height: "100%",
-        transition: ".3s",
-
-        "&:hover": {
-          transform: "translateY(-8px)",
-          boxShadow:
-            "0 15px 30px rgba(0,0,0,.08)",
-        },
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 3,
       }}
     >
-      <Box
-        sx={{
-          position: "relative",
-        }}
-      >
+      <Box sx={{ position: "relative" }}>
+        <CardMedia
+          component="img"
+          height="220"
+          image={image}
+          alt={product.name}
+        />
+
         <Chip
-          label={`${product.discount}% OFF`}
-          color="success"
+          label={
+            product.status === "available"
+              ? "Available"
+              : product.status === "out_of_stock"
+              ? "Out of Stock"
+              : "Inactive"
+          }
+          color={
+            product.status === "available"
+              ? "success"
+              : product.status === "out_of_stock"
+              ? "warning"
+              : "default"
+          }
           size="small"
           sx={{
             position: "absolute",
             top: 12,
-            left: 12,
-            fontWeight: 700,
-          }}
-        />
-
-        <IconButton
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            bgcolor: "#fff",
-          }}
-        >
-          <FavoriteBorderIcon />
-        </IconButton>
-
-        <Box
-          component="img"
-          src={product.image}
-          sx={{
-            width: "100%",
-            height: 220,
-            objectFit: "contain",
-            p: 2,
+            right: 12,
           }}
         />
       </Box>
 
-      <CardContent>
-        <Typography
-          variant="h6"
-         sx={{ fontWeight:700}}
-        >
-          {product.name}
-        </Typography>
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Stack spacing={1}>
+          <Typography
+            variant="h6"
+            fontWeight={700}
+            noWrap
+          >
+            {product.name}
+          </Typography>
 
-        <Typography
-          sx={{color:"text.secondary",
-          mt:1}}
-        >
-          {product.category}
-        </Typography>
-
-        <Box
-          sx={{display:"flex",
-          alignItems:"center",
-          mt:2}}
-        >
-          <Rating
-            value={product.rating}
-            precision={0.5}
-            size="small"
-            readOnly
-          />
+          {product.brand && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              Brand: {product.brand}
+            </Typography>
+          )}
 
           <Typography
-           sx={{ ml:1,
-            fontSize:14}}
+            variant="body2"
+            color="text.secondary"
           >
-            {product.rating}
+            Category: {product.category}
           </Typography>
-        </Box>
 
-        <Typography
-        
-          variant="h5"
-          sx={{fontWeight:700,
-          color:"primary",
-        mt:2}}
-        >
-          ${product.price}
-        </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            Stock: {product.stock}
+          </Typography>
 
-        <Typography
-          sx={{
-            textDecoration:
-              "line-through",
-            color: "gray",
-          }}
-        >
-          ${product.originalPrice}
-        </Typography>
+          <Typography
+            variant="h6"
+            color="primary.main"
+            fontWeight={700}
+          >
+            ₹{product.price.toLocaleString()}
+          </Typography>
+        </Stack>
+      </CardContent>
 
-        <Typography
-         sx={{ mt:1,
-          color:"text.secondary"}}
+      <CardActions
+        sx={{
+          p: 2,
+          gap: 1,
+        }}
+      >
+        <Button
+          component={Link}
+          href={`/marketplace/${product._id}`}
+          variant="outlined"
+          fullWidth
         >
-          Seller: {product.seller}
-        </Typography>
+          Details
+        </Button>
 
         <Button
-          fullWidth
           variant="contained"
-          startIcon={
-            <ShoppingCartIcon />
+          fullWidth
+          startIcon={<ShoppingCartIcon />}
+          disabled={
+            product.status !== "available"
           }
-          sx={{
-            mt: 3,
-          }}
+          onClick={() =>
+            onAddToCart?.(product)
+          }
         >
-          Add To Cart
+          Cart
         </Button>
-      </CardContent>
+      </CardActions>
     </Card>
-    </Link>
-
   );
 }

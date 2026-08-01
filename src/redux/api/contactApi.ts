@@ -4,7 +4,7 @@ import {
   Contact,
   ContactPayload,
   ContactResponse,
-} from "@/src/types/contactTypes";
+} from "../../types/contact.types";
 
 export const contactApi =
   baseApi.injectEndpoints({
