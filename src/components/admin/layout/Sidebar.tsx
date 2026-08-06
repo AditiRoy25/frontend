@@ -83,14 +83,21 @@ export default function Sidebar() {
         top: 0,
       }}
     >
-      <Toolbar>
-        <Typography
-          variant="h5"
-          sx={{fontWeight:700}}
-        >
-          AgroSphere
-        </Typography>
-      </Toolbar>
+     <Toolbar>
+  <Typography
+    component={Link}
+    href="/"
+    variant="h5"
+    sx={{
+      fontWeight: 700,
+      color: "success.main",
+      textDecoration: "none",
+      cursor: "pointer",
+    }}
+  >
+    AgroSphere
+  </Typography>
+</Toolbar>
 
       <Divider
         sx={{

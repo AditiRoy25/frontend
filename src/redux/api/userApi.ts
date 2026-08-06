@@ -139,6 +139,8 @@ export const userApi = baseApi.injectEndpoints({
 export const {
   useGetMyProfileQuery,
 
+  useLazyGetMyProfileQuery,
+
   useUpdateProfileMutation,
 
   useUploadProfileImageMutation,

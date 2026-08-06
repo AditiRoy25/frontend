@@ -21,6 +21,12 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 import type { INgo } from "@/src/types/ngo.types";
 
+const imageUrl = (value?: string) => {
+  if (!value) return undefined;
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  return `${process.env.NEXT_PUBLIC_API_URL}/${value.replace(/^\//, "")}`;
+};
+
 interface NgoDetailsDialogProps {
   open: boolean;
   ngo: INgo | null;
@@ -52,7 +58,12 @@ export default function NgoDetailsDialog({
           mb:3}}
         >
           <Avatar
-            src={ngo.logo}
+            src={imageUrl(
+              ngo.logo ||
+                (typeof ngo.user === "string"
+                  ? undefined
+                  : ngo.user.image)
+            )}
             sx={{
               width: 120,
               height: 120,

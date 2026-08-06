@@ -1,6 +1,6 @@
 import { baseApi } from "./baseApi";
 
-import {
+import type {
   GovernmentSchemesResponse,
   GovernmentSchemeResponse,
   CreateSchemePayload,
@@ -14,9 +14,9 @@ import {
 export const schemeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
-    // =========================
+    // ==========================================
     // PUBLIC
-    // =========================
+    // ==========================================
 
     getSchemes: builder.query<
       GovernmentSchemesResponse,
@@ -46,9 +46,43 @@ export const schemeApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // =========================
+    // ==========================================
+    // FARMER
+    // ==========================================
+
+    applyScheme: builder.mutation<
+      SchemeApplicationResponse,
+      ApplySchemePayload
+    >({
+      query: (body) => ({
+        url: "/schemes/apply",
+        method: "POST",
+        body,
+      }),
+
+      invalidatesTags: [
+        "Scheme",
+        "MyScheme",
+      ],
+    }),
+
+    mySchemes: builder.query<
+      MySchemesResponse,
+      void
+    >({
+      query: () => ({
+        url: "/schemes/my",
+        method: "GET",
+      }),
+
+      providesTags: [
+        "MyScheme",
+      ],
+    }),
+
+    // ==========================================
     // ADMIN
-    // =========================
+    // ==========================================
 
     createScheme: builder.mutation<
       GovernmentSchemeResponse,
@@ -59,7 +93,10 @@ export const schemeApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Scheme"],
+
+      invalidatesTags: [
+        "Scheme",
+      ],
     }),
 
     updateScheme: builder.mutation<
@@ -69,12 +106,20 @@ export const schemeApi = baseApi.injectEndpoints({
         body: UpdateSchemePayload;
       }
     >({
-      query: ({ id, body }) => ({
+      query: ({
+        id,
+        body,
+      }) => ({
         url: `/schemes/${id}`,
         method: "PUT",
         body,
       }),
-      invalidatesTags: (_result, _error, { id }) => [
+
+      invalidatesTags: (
+        _result,
+        _error,
+        { id }
+      ) => [
         "Scheme",
         {
           type: "Scheme",
@@ -94,47 +139,30 @@ export const schemeApi = baseApi.injectEndpoints({
         url: `/schemes/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Scheme"],
+
+      invalidatesTags: [
+        "Scheme",
+      ],
     }),
-
-    // =========================
-    // FARMER
-    // =========================
-
-    applyScheme: builder.mutation<
-      SchemeApplicationResponse,
-      ApplySchemePayload
-    >({
-      query: (body) => ({
-        url: "/schemes/apply",
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["Scheme"],
-    }),
-
-    mySchemes: builder.query<
-      MySchemesResponse,
-      void
-    >({
-      query: () => ({
-        url: "/schemes/my",
-        method: "GET",
-      }),
-      providesTags: ["Scheme"],
-    }),
-
   }),
 });
 
 export const {
+
+  // PUBLIC
+
   useGetSchemesQuery,
   useGetSchemeByIdQuery,
+
+  // FARMER
+
+  useApplySchemeMutation,
+  useMySchemesQuery,
+
+  // ADMIN
 
   useCreateSchemeMutation,
   useUpdateSchemeMutation,
   useDeleteSchemeMutation,
 
-  useApplySchemeMutation,
-  useMySchemesQuery,
 } = schemeApi;

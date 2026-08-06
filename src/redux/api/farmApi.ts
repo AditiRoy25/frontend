@@ -1,111 +1,145 @@
-import { baseApi } from "./baseApi";
+import {
+  baseApi,
+} from "./baseApi";
 
 import type {
-  FarmsResponse,
-  FarmResponse,
+  Farm,
+  MyFarmsResponse,
   CreateFarmPayload,
-  UpdateFarmPayload,
-  DeleteFarmResponse,
-} from "@/src/types/farm.types";
+} from "@/src/types/farm";
 
-export const farmApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({
+interface FarmResponse {
+  success: boolean;
+  message?: string;
+  farm: Farm;
+}
 
-    // Get all farms
-    getMyFarms: builder.query<FarmsResponse, void>({
-      query: () => ({
-        url: "/farms",
-        method: "GET",
-      }),
+export const farmApi =
+  baseApi.injectEndpoints({
+    endpoints: (builder) => ({
 
-      providesTags: ["Farm"],
+      // =====================================
+      // FARMER - MY FARMS
+      // =====================================
+
+      getMyFarms:
+        builder.query<
+          MyFarmsResponse,
+          void
+        >({
+          query: () => ({
+            url: "/farms/my-farms",
+            method: "GET",
+          }),
+
+          providesTags: [
+            "Farm",
+          ],
+        }),
+
+      // =====================================
+      // CREATE FARM
+      // =====================================
+
+      createFarm:
+        builder.mutation<
+          FarmResponse,
+          CreateFarmPayload
+        >({
+          query: (body) => ({
+            url: "/farms",
+            method: "POST",
+            body,
+          }),
+
+          invalidatesTags: [
+            "Farm",
+          ],
+        }),
+
+      // =====================================
+      // GET SINGLE FARM
+      // =====================================
+
+      getFarm:
+        builder.query<
+          FarmResponse,
+          string
+        >({
+          query: (id) => ({
+            url: `/farms/${id}`,
+            method: "GET",
+          }),
+
+          providesTags:
+            (
+              _result,
+              _error,
+              id
+            ) => [
+              {
+                type: "Farm",
+                id,
+              },
+            ],
+        }),
+
+      // =====================================
+      // UPDATE FARM
+      // =====================================
+
+      updateFarm:
+        builder.mutation<
+          FarmResponse,
+          {
+            id: string;
+            body:
+              Partial<CreateFarmPayload>;
+          }
+        >({
+          query: ({
+            id,
+            body,
+          }) => ({
+            url: `/farms/${id}`,
+            method: "PUT",
+            body,
+          }),
+
+          invalidatesTags: [
+            "Farm",
+          ],
+        }),
+
+      // =====================================
+      // DELETE FARM
+      // =====================================
+
+      deleteFarm:
+        builder.mutation<
+          {
+            success: boolean;
+            message: string;
+          },
+          string
+        >({
+          query: (id) => ({
+            url: `/farms/${id}`,
+            method: "DELETE",
+          }),
+
+          invalidatesTags: [
+            "Farm",
+          ],
+        }),
+
     }),
-
-    // Get single farm
-    getFarm: builder.query<FarmResponse, string>({
-      query: (id) => ({
-        url: `/farms/${id}`,
-        method: "GET",
-      }),
-
-      providesTags: ["Farm"],
-    }),
-
-    // Create farm
-    createFarm: builder.mutation<
-      FarmResponse,
-      CreateFarmPayload
-    >({
-      query: (data) => {
-        const formData = new FormData();
-
-        formData.append("name", data.name);
-        formData.append("cropName", data.cropName);
-        formData.append("area", String(data.area));
-        formData.append("areaUnit", data.areaUnit);
-        formData.append("location", data.location);
-
-        if (data.image) {
-          formData.append("image", data.image);
-        }
-
-        return {
-          url: "/farms",
-          method: "POST",
-          body: formData,
-        };
-      },
-
-      invalidatesTags: ["Farm"],
-    }),
-
-    // Update farm
-    updateFarm: builder.mutation<
-      FarmResponse,
-      UpdateFarmPayload
-    >({
-      query: ({ id, ...data }) => {
-        const formData = new FormData();
-
-        formData.append("name", data.name);
-        formData.append("cropName", data.cropName);
-        formData.append("area", String(data.area));
-        formData.append("areaUnit", data.areaUnit);
-        formData.append("location", data.location);
-
-        if (data.image) {
-          formData.append("image", data.image);
-        }
-
-        return {
-          url: `/farms/${id}`,
-          method: "PUT",
-          body: formData,
-        };
-      },
-
-      invalidatesTags: ["Farm"],
-    }),
-
-    // Delete farm
-    deleteFarm: builder.mutation<
-      DeleteFarmResponse,
-      string
-    >({
-      query: (id) => ({
-        url: `/farms/${id}`,
-        method: "DELETE",
-      }),
-
-      invalidatesTags: ["Farm"],
-    }),
-  }),
-});
+  });
 
 export const {
   useGetMyFarmsQuery,
-  useGetFarmQuery,
   useCreateFarmMutation,
+  useGetFarmQuery,
   useUpdateFarmMutation,
   useDeleteFarmMutation,
 } = farmApi;

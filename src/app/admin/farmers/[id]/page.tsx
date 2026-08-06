@@ -20,8 +20,10 @@ import {
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 import { useGetFarmerByIdQuery } from "@/src/redux/api/farmerApi";
+import { useUnblockUserMutation } from "@/src/redux/api/adminApi";
 
 export default function FarmerDetailsPage() {
   const router = useRouter();
@@ -34,11 +36,34 @@ export default function FarmerDetailsPage() {
     data,
     isLoading,
     isError,
+    refetch,
   } = useGetFarmerByIdQuery(id);
+
+  const [unblockUser, { isLoading: isUnblocking }] =
+    useUnblockUserMutation();
 
   const farmer =
     data?.data ??
     data?.farmer;
+
+  const getImageUrl = (image?: string) => {
+    if (!image || image.startsWith("http")) {
+      return image;
+    }
+
+    return `${process.env.NEXT_PUBLIC_API_URL}${image}`;
+  };
+
+  const handleUnblock = async () => {
+    if (!farmer?._id) return;
+
+    try {
+      await unblockUser(farmer._id).unwrap();
+      refetch();
+    } catch (error) {
+      console.error("UNBLOCK FARMER ERROR:", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -81,19 +106,33 @@ export default function FarmerDetailsPage() {
             Back
           </Button>
 
-          <Button
-            variant="contained"
-            startIcon={
-              <EditIcon />
-            }
-            onClick={() =>
-              router.push(
-                `/admin/farmers/edit/${farmer._id}`
-              )
-            }
-          >
-            Edit
-          </Button>
+          <Stack direction="row" spacing={1}>
+            {farmer.isBlocked && (
+              <Button
+                color="success"
+                variant="contained"
+                startIcon={<CheckCircleIcon />}
+                disabled={isUnblocking}
+                onClick={handleUnblock}
+              >
+                {isUnblocking ? "Unblocking..." : "Unblock"}
+              </Button>
+            )}
+
+            {/* <Button
+              variant="contained"
+              startIcon={
+                <EditIcon />
+              }
+              onClick={() =>
+                router.push(
+                  `/admin/farmers/edit/${farmer._id}`
+                )
+              }
+            >
+              Edit
+            </Button> */}
+          </Stack>
         </Stack>
 
         <Card>
@@ -104,7 +143,10 @@ export default function FarmerDetailsPage() {
             >
               <Avatar
                 src={
-                  farmer.profileImage
+                  getImageUrl(
+                    farmer.profileImage ??
+                    farmer.image
+                  )
                 }
                 sx={{
                   width: 120,

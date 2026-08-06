@@ -16,7 +16,7 @@ import {
 
 import NgoRegistrationForm, {
   NgoRegistrationFormValues,
-} from "@/src/components/ngo/NgoRegistrationForm";
+} from "@/src/components/admin/ngo/NgoRegistrationForm";
 
 export default function NgoRegistrationPage() {
   const router = useRouter();
@@ -39,8 +39,8 @@ export default function NgoRegistrationPage() {
         new FormData();
 
       formData.append(
-        "name",
-        values.name
+        "organizationName",
+        values.organizationName
       );
 
       formData.append(
@@ -49,58 +49,14 @@ export default function NgoRegistrationPage() {
       );
 
       formData.append(
-        "email",
-        values.email
-      );
-
-      formData.append(
-        "phone",
-        values.phone
-      );
-
-      formData.append(
-        "website",
-        values.website
-      );
-
-      formData.append(
-        "state",
-        values.state
-      );
-
-      formData.append(
-        "district",
-        values.district
-      );
-
-      formData.append(
-        "pincode",
-        values.pincode
-      );
-
-      formData.append(
         "address",
         values.address
-      );
-
-      formData.append(
-        "description",
-        values.description
       );
 
       if (values.logo) {
         formData.append(
           "logo",
           values.logo
-        );
-      }
-
-      if (
-        values.certificate
-      ) {
-        formData.append(
-          "certificate",
-          values.certificate
         );
       }
 

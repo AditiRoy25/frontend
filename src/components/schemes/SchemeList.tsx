@@ -10,31 +10,79 @@ import {
 
 import SchemeCard from "./SchemeCard";
 
-import { useGetSchemesQuery } from "@/src/redux/api/schemeApi";
+import type {
+  GovernmentScheme,
+} from "@/src/types/scheme";
 
-export default function SchemeList() {
-  const {
-    data,
-    isLoading,
-    isError,
-  } = useGetSchemesQuery();
-  console.log("Scheme API Response:", data);
+// ==========================================
+// PROPS
+// ==========================================
 
-  if (isLoading) {
+interface Props {
+  schemes: GovernmentScheme[];
+
+  loading?: boolean;
+
+  error?: boolean;
+
+  isLoggedIn?: boolean;
+
+  isFarmer?: boolean;
+
+  appliedSchemeIds?: Set<string>;
+
+  applyingSchemeId?: string | null;
+
+  onApply?: (
+    schemeId: string
+  ) => void;
+}
+
+// ==========================================
+// COMPONENT
+// ==========================================
+
+export default function SchemeList({
+  schemes,
+
+  loading = false,
+
+  error = false,
+
+  isLoggedIn = false,
+
+  isFarmer = false,
+
+  appliedSchemeIds = new Set(),
+
+  applyingSchemeId = null,
+
+  onApply,
+}: Props) {
+  // ========================================
+  // LOADING
+  // ========================================
+
+  if (loading) {
     return (
       <Box
         sx={{
-          py: 8,
           display: "flex",
           justifyContent: "center",
+          alignItems: "center",
+          py: 10,
         }}
       >
-        <CircularProgress />
+        <CircularProgress color="success" />
       </Box>
     );
   }
 
-  if (isError) {
+  // ========================================
+  // ERROR
+  // ========================================
+
+  if (error) {
     return (
       <Alert severity="error">
         Failed to load government schemes.
@@ -42,48 +90,77 @@ export default function SchemeList() {
     );
   }
 
-  if (!data?.schemes?.length) {
+  // ========================================
+  // EMPTY
+  // ========================================
+
+  if (schemes.length === 0) {
     return (
       <Box
         sx={{
-          py: 8,
+          py: 10,
           textAlign: "center",
         }}
       >
         <Typography
-          variant="h6"
+          variant="h5"
+          fontWeight={700}
           gutterBottom
         >
-          No Schemes Found
+          No Government Schemes Found
         </Typography>
 
-        <Typography color="text.secondary">
-          There are currently no government schemes available.
+        <Typography
+          color="text.secondary"
+        >
+          No schemes are available at the
+          moment.
         </Typography>
       </Box>
     );
   }
+
+  // ========================================
+  // LIST
+  // ========================================
 
   return (
     <Grid
       container
       spacing={3}
     >
-      {data.schemes.map((scheme) => (
-        <Grid
-          key={scheme._id}
-          size={{
-            xs: 12,
-            md: 6,
-            lg: 4,
-          }}
-        >
-          <SchemeCard
-            scheme={scheme}
-            isLoggedIn={false}
-          />
-        </Grid>
-      ))}
+      {schemes.map(
+        (scheme) => (
+          <Grid
+            key={scheme._id}
+            size={{
+              xs: 12,
+              sm: 6,
+              lg: 4,
+            }}
+          >
+            <SchemeCard
+              scheme={scheme}
+              isLoggedIn={
+                isLoggedIn
+              }
+              isFarmer={
+                isFarmer
+              }
+              alreadyApplied={appliedSchemeIds.has(
+                scheme._id
+              )}
+              applying={
+                applyingSchemeId ===
+                scheme._id
+              }
+              onApply={
+                onApply
+              }
+            />
+          </Grid>
+        )
+      )}
     </Grid>
   );
 }

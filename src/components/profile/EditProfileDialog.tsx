@@ -122,15 +122,15 @@ export default function EditProfileDialog({
             }
             fullWidth
           >
-            <MenuItem value="Male">
+            <MenuItem value="male">
               Male
             </MenuItem>
 
-            <MenuItem value="Female">
+            <MenuItem value="female">
               Female
             </MenuItem>
 
-            <MenuItem value="Other">
+            <MenuItem value="other">
               Other
             </MenuItem>
           </TextField>

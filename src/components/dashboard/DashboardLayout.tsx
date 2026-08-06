@@ -3,24 +3,40 @@
 import { Box } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
+// ==========================================
+// DASHBOARD COMPONENTS
+// ==========================================
+
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+
 import WelcomeBanner from "./WelcomeBanner";
 import StatsCards from "./StartsCard";
+
+import MyFarms from "../farmer/dashboard/Myfarm";
 import FarmOverview from "./FarmOverview";
-import WeatherCard from "./WeatherCard";
+
+import WeatherAlertSummary from "../farmer/weather/WeatherAlertSummary";
 import QuickActions from "./QuickActions";
+
 import CropCalendar from "./CropCalender";
 import AIRecommendation from "./AIRecommendation";
+
 import Notifications from "./Notifications";
 import LearningPortal from "./LearningProtal";
+
 import DashboardCharts from "./DashboardCharts";
 import MarketplaceOrders from "./MarketplaceOrder";
+
 import GovernmentSchemeCard from "./GovernmentSchemeCard";
 import SoilHealthCard from "./SoilHealth";
-import WeatherForecast from "./WeatherCard";
+
 import RecentActivity from "./RecentActivity";
 import HelpCard from "./Helpcard";
+
+// ==========================================
+// DASHBOARD LAYOUT
+// ==========================================
 
 export default function DashboardLayout() {
   return (
@@ -31,109 +47,279 @@ export default function DashboardLayout() {
         bgcolor: "#F5F7FA",
       }}
     >
-      {/* Sidebar */}
+      {/* ==================================
+          SIDEBAR
+      ================================== */}
+
       <Sidebar />
 
-      {/* Main Content */}
+      {/* ==================================
+          MAIN CONTENT
+      ================================== */}
+
       <Box
+        component="main"
         sx={{
           flex: 1,
+          minWidth: 0,
+
           display: "flex",
           flexDirection: "column",
+
+          minHeight: "100vh",
         }}
       >
-        {/* Header */}
+        {/* ==================================
+            HEADER
+        ================================== */}
+
         <Header />
 
-        {/* Dashboard Content */}
+        {/* ==================================
+            DASHBOARD CONTENT
+        ================================== */}
+
         <Box
           sx={{
             flex: 1,
-            p: 3,
+
+            p: {
+              xs: 2,
+              sm: 2.5,
+              md: 3,
+            },
+
             bgcolor: "#F5F7FA",
-            overflowY: "auto",
+
+            overflowX: "hidden",
           }}
         >
-          {/* Welcome */}
-          <WelcomeBanner />
+          {/* ==================================
+              WELCOME BANNER
+          ================================== */}
 
-          {/* Statistics */}
-          <StatsCards />
+          <Box sx={{ mb: 3 }}>
+            <WelcomeBanner />
+          </Box>
 
-          {/* Farm + Weather */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, lg: 8 }}>
+          {/* ==================================
+              STATISTICS
+          ================================== */}
+
+          <Box sx={{ mb: 3 }}>
+            <StatsCards />
+          </Box>
+
+          {/* ==================================
+              MY FARMS
+          ================================== */}
+
+          <Box sx={{ mb: 3 }}>
+            <MyFarms />
+          </Box>
+
+          {/* ==================================
+              FARM OVERVIEW + WEATHER ALERT
+          ================================== */}
+
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              mb: 3,
+            }}
+          >
+            {/* FARM OVERVIEW */}
+
+            <Grid
+              size={{
+                xs: 12,
+                lg: 8,
+              }}
+            >
               <FarmOverview />
             </Grid>
 
-            <Grid size={{ xs: 12, lg: 4 }}>
+            {/* WEATHER ALERT + QUICK ACTION */}
+
+            <Grid
+              size={{
+                xs: 12,
+                lg: 4,
+              }}
+            >
               <Box
                 sx={{
+                  height: "100%",
+
                   display: "flex",
                   flexDirection: "column",
+
                   gap: 3,
                 }}
               >
-                <WeatherCard />
+                <WeatherAlertSummary />
+
                 <QuickActions />
               </Box>
             </Grid>
           </Grid>
 
-          {/* Calendar + AI + Notifications + Learning */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, md: 6 }}>
+          {/* ==================================
+              CROP CALENDAR + AI
+          ================================== */}
+
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              mb: 3,
+            }}
+          >
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <CropCalendar />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <AIRecommendation />
             </Grid>
+          </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+          {/* ==================================
+              NOTIFICATIONS + LEARNING
+          ================================== */}
+
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              mb: 3,
+            }}
+          >
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <Notifications />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <LearningPortal />
             </Grid>
           </Grid>
 
-          {/* Analytics */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, lg: 8 }}>
+          {/* ==================================
+              ANALYTICS + MARKETPLACE
+          ================================== */}
+
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              mb: 3,
+            }}
+          >
+            <Grid
+              size={{
+                xs: 12,
+                lg: 8,
+              }}
+            >
               <DashboardCharts />
             </Grid>
 
-            <Grid size={{ xs: 12, lg: 4 }}>
+            <Grid
+              size={{
+                xs: 12,
+                lg: 4,
+              }}
+            >
               <MarketplaceOrders />
             </Grid>
           </Grid>
 
-          {/* Schemes + Soil */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, md: 6 }}>
+          {/* ==================================
+              GOVERNMENT SCHEME + SOIL
+          ================================== */}
+
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              mb: 3,
+            }}
+          >
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <GovernmentSchemeCard />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <SoilHealthCard />
             </Grid>
           </Grid>
 
-          {/* Forecast + Activities */}
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <WeatherForecast />
+          {/* ==================================
+              WEATHER ALERT + RECENT ACTIVITY
+          ================================== */}
+
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              mb: 3,
+            }}
+          >
+            <Grid
+              size={{
+                xs: 12,
+                lg: 6,
+              }}
+            >
+              <WeatherAlertSummary />
             </Grid>
 
-            <Grid size={{ xs: 12, lg: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                lg: 6,
+              }}
+            >
               <RecentActivity />
             </Grid>
           </Grid>
 
-          {/* Help */}
-          <Box sx={{mt:3}}>
+          {/* ==================================
+              HELP
+          ================================== */}
+
+          <Box>
             <HelpCard />
           </Box>
         </Box>

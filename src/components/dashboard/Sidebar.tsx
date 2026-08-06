@@ -31,7 +31,7 @@ const menus = [
   {
     title: "My Profile",
     icon: <PersonOutlineOutlinedIcon />,
-    href: "/users/farmer",
+    href: "/farmer/profile",
   },
   {
     title: "My Farms",
@@ -41,7 +41,7 @@ const menus = [
   {
     title: "Crop Calendar",
     icon: <CalendarMonthOutlinedIcon />,
-    href: "/farmer/calendar",
+    href: "/farmer/crop-calendar",
   },
   {
     title: "Marketplace",
@@ -51,7 +51,7 @@ const menus = [
   {
     title: "Weather Alerts",
     icon: <CloudOutlinedIcon />,
-    href: "/farmer/weather",
+    href: "/farmer/weather-alerts",
   },
   {
     title: "AI Assistant",
@@ -91,13 +91,19 @@ export default function Sidebar() {
           borderBottom: "1px solid #ECECEC",
         }}
       >
-        <Typography
-          variant="h4"
-          color="success.main"
-          sx={{ fontWeight: 700 }}
-        >
-          AgroSphere
-        </Typography>
+      <Typography
+  component={Link}
+  href="/"
+  variant="h4"
+  color="success.main"
+  sx={{
+    fontWeight: 700,
+    textDecoration: "none",
+    cursor: "pointer",
+  }}
+>
+  AgroSphere
+</Typography>
 
         <Typography
           variant="body2"

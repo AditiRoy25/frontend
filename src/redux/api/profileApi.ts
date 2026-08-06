@@ -13,7 +13,7 @@ export const profileApi = baseApi.injectEndpoints({
     // My Profile
     myProfile: builder.query<ProfileResponse, void>({
       query: () => ({
-        url: "/users/me",
+        url: "/user/me",
         method: "GET",
       }),
 
@@ -36,7 +36,7 @@ export const profileApi = baseApi.injectEndpoints({
       UpdateProfilePayload
     >({
       query: (body) => ({
-        url: "/users/update-profile",
+        url: "/user/update-profile",
         method: "PUT",
         body,
       }),
@@ -50,7 +50,7 @@ export const profileApi = baseApi.injectEndpoints({
       ChangePasswordPayload
     >({
       query: (body) => ({
-        url: "/users/change-password",
+        url: "/user/change-password",
         method: "PUT",
         body,
       }),

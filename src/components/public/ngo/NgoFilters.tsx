@@ -1,133 +1,152 @@
 "use client";
 
 import {
+  Box,
   Button,
-  FormControlLabel,
-  Grid,
+  InputAdornment,
   Paper,
   Stack,
   Switch,
   TextField,
-  InputAdornment,
+  Typography,
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-
-export interface NgoFilterValues {
-  search: string;
-  verified: boolean;
-}
+import VerifiedIcon from "@mui/icons-material/Verified";
 
 interface Props {
-  value: NgoFilterValues;
-  onChange: (
-    value: NgoFilterValues
-  ) => void;
+
+  search: string;
+
+  approvedOnly: boolean;
+
+  onSearchChange:
+    (value: string) => void;
+
+  onApprovedChange:
+    (value: boolean) => void;
+
+  onReset: () => void;
 }
 
 export default function NgoFilters({
-  value,
-  onChange,
+  search,
+  approvedOnly,
+  onSearchChange,
+  onApprovedChange,
+  onReset,
 }: Props) {
-  const handleChange = (
-    key: keyof NgoFilterValues,
-    val: string | boolean
-  ) => {
-    onChange({
-      ...value,
-      [key]: val,
-    });
-  };
-
-  const handleReset = () => {
-    onChange({
-      search: "",
-      verified: false,
-    });
-  };
 
   return (
     <Paper
-      elevation={2}
+      elevation={0}
       sx={{
-        p: 3,
-        borderRadius: 3,
+        p: {
+          xs: 2,
+          md: 2.5,
+        },
+
+        borderRadius: 4,
+
+        border:
+          "1px solid #e1e8e2",
+
+        boxShadow:
+          "0 8px 30px rgba(0,0,0,0.04)",
       }}
     >
-      <Grid
-        container
-       sx={{ spacing:3,
-        alignItems:"center"}}
+      <Stack
+        direction={{
+          xs: "column",
+          md: "row",
+        }}
+        spacing={2}
+        alignItems={{
+          xs: "stretch",
+          md: "center",
+        }}
       >
-        <Grid
-          size={{
-            xs: 12,
-            md: 8,
+        {/* SEARCH */}
+
+        <TextField
+          fullWidth
+          value={search}
+          placeholder={
+            "Search by NGO name, registration number or location..."
+          }
+          onChange={(e) =>
+            onSearchChange(
+              e.target.value
+            )
+          }
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon
+                    color="action"
+                  />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+
+        {/* APPROVED */}
+
+        <Box
+          sx={{
+            minWidth: 190,
+
+            display: "flex",
+
+            alignItems: "center",
+
+            px: 1,
           }}
         >
-          <TextField
-            fullWidth
-            label="Search NGO"
-            placeholder="Search by organization name..."
-            value={value.search}
+          <VerifiedIcon
+            color="success"
+            sx={{ mr: 0.5 }}
+          />
+
+          <Switch
+            checked={
+              approvedOnly
+            }
             onChange={(e) =>
-              handleChange(
-                "search",
-                e.target.value
+              onApprovedChange(
+                e.target.checked
               )
             }
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              },
-            }}
+            color="success"
           />
-        </Grid>
 
-        <Grid
-          size={{
-            xs: 12,
-            md: 4,
+          <Typography
+            variant="body2"
+            fontWeight={600}
+          >
+            Approved Only
+          </Typography>
+        </Box>
+
+        {/* RESET */}
+
+        <Button
+          variant="outlined"
+          startIcon={
+            <RestartAltIcon />
+          }
+          onClick={onReset}
+          sx={{
+            minWidth: 110,
+            height: 55,
           }}
         >
-          <Stack
-           sx={{ direction:"row",
-            spacing:2,
-            justifyContent:"space-between",
-            alignItems:"center"}}
-          >
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={value.verified}
-                  onChange={(e) =>
-                    handleChange(
-                      "verified",
-                      e.target.checked
-                    )
-                  }
-                />
-              }
-              label="Approved Only"
-            />
-
-            <Button
-              variant="outlined"
-              startIcon={
-                <RestartAltIcon />
-              }
-              onClick={handleReset}
-            >
-              Reset
-            </Button>
-          </Stack>
-        </Grid>
-      </Grid>
+          Reset
+        </Button>
+      </Stack>
     </Paper>
   );
 }

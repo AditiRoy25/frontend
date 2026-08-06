@@ -20,11 +20,17 @@ import {
 } from "@mui/material";
 
 import {
-  useState,
   MouseEvent,
+  useEffect,
+  useState,
 } from "react";
 
-import { useDispatch, useSelector } from "react-redux";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
+import Cookies from "js-cookie";
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -32,19 +38,34 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import {
   logout,
+  restoreCredentials,
+  type User,
 } from "@/src/redux/slices/authSlice";
+
+import {
+  baseApi,
+} from "@/src/redux/api/baseApi";
+
+import {
+  useLazyGetMyProfileQuery,
+} from "@/src/redux/api/userApi";
+
+import {
+  useLogoutMutation,
+} from "@/src/redux/api/authApi";
 
 import type {
   RootState,
+  AppDispatch,
 } from "@/src/redux/store";
 
 import {
   roleRoutes,
 } from "@/src/lib/permissions";
 
-// ===============================
-// Public Navbar Menu
-// ===============================
+// =====================================
+// PUBLIC NAVBAR MENU
+// =====================================
 
 const menus = [
   {
@@ -77,6 +98,10 @@ const menus = [
   },
 ];
 
+// =====================================
+// NAVBAR
+// =====================================
+
 export default function Navbar() {
   const pathname =
     usePathname();
@@ -85,11 +110,17 @@ export default function Navbar() {
     useRouter();
 
   const dispatch =
-    useDispatch();
+    useDispatch<AppDispatch>();
 
-  // ===============================
-  // Redux Auth
-  // ===============================
+  const [getMyProfile] =
+    useLazyGetMyProfileQuery();
+
+  const [logoutUser] =
+    useLogoutMutation();
+
+  // =====================================
+  // REDUX AUTH
+  // =====================================
 
   const {
     user,
@@ -99,20 +130,180 @@ export default function Navbar() {
       state.auth
   );
 
-  // ===============================
-  // User Menu
-  // ===============================
+  // =====================================
+  // AUTH INITIALIZATION
+  // =====================================
+
+  const [
+    authReady,
+    setAuthReady,
+  ] = useState(false);
+
+  // =====================================
+  // DROPDOWN
+  // =====================================
 
   const [
     anchorEl,
     setAnchorEl,
-  ] =
-    useState<null | HTMLElement>(
-      null
-    );
+  ] = useState<null | HTMLElement>(
+    null
+  );
 
   const menuOpen =
     Boolean(anchorEl);
+
+  // =====================================
+  // RESTORE REDUX FROM COOKIES
+  // =====================================
+
+  useEffect(() => {
+    const restoreAuth = async () => {
+      try {
+      // Already authenticated in Redux
+      if (
+        isAuthenticated &&
+        user
+      ) {
+        setAuthReady(true);
+
+        return;
+      }
+
+      // Get cookies
+      const accessToken =
+        Cookies.get(
+          "accessToken"
+        );
+
+      const refreshToken =
+        Cookies.get(
+          "refreshToken"
+        );
+
+      const userCookie =
+        Cookies.get(
+          "user"
+        );
+
+      // =================================
+      // NO LOGIN COOKIE
+      // =================================
+
+      if (!userCookie) {
+        const response = await getMyProfile().unwrap();
+        const profile = (response as { data?: User }).data;
+
+        if (!profile?._id || !profile.role) {
+          throw new Error("Invalid profile response");
+        }
+
+        Cookies.set("user", JSON.stringify(profile), {
+          expires: 7,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        });
+
+        dispatch(
+          restoreCredentials({
+            user: profile,
+            accessToken: accessToken ?? "",
+            refreshToken,
+          })
+        );
+
+        return;
+      }
+
+      if (!accessToken) {
+        throw new Error("Missing access token");
+      }
+
+      // =================================
+      // PARSE USER COOKIE
+      // =================================
+
+      const cookieUser: User =
+        JSON.parse(
+          userCookie
+        );
+
+      // =================================
+      // VALIDATE COOKIE USER
+      // =================================
+
+      if (
+        !cookieUser ||
+        !(cookieUser._id || (cookieUser as User & { id?: string }).id) ||
+        !cookieUser.role
+      ) {
+        throw new Error(
+          "Invalid user cookie"
+        );
+      }
+
+      // =================================
+      // RESTORE REDUX
+      // =================================
+
+      dispatch(
+        restoreCredentials({
+          user: {
+            ...cookieUser,
+            _id:
+              cookieUser._id ??
+              (cookieUser as User & { id?: string }).id ??
+              "",
+          },
+
+          accessToken,
+
+          refreshToken,
+        })
+      );
+      } catch (error) {
+      console.error(
+        "Auth restore failed:",
+        error
+      );
+
+      // Remove invalid cookies
+      Cookies.remove(
+        "accessToken"
+      );
+
+      Cookies.remove(
+        "refreshToken"
+      );
+
+      Cookies.remove(
+        "user"
+      );
+
+      Cookies.remove(
+        "role"
+      );
+
+      // Remove old cookie
+      Cookies.remove(
+        "token"
+      );
+      } finally {
+      setAuthReady(true);
+      }
+    };
+
+    void restoreAuth();
+  }, [
+    dispatch,
+    getMyProfile,
+    isAuthenticated,
+    user,
+  ]);
+
+  // =====================================
+  // MENU OPEN
+  // =====================================
 
   const handleMenuOpen = (
     event: MouseEvent<HTMLElement>
@@ -122,20 +313,26 @@ export default function Navbar() {
     );
   };
 
+  // =====================================
+  // MENU CLOSE
+  // =====================================
+
   const handleMenuClose =
     () => {
       setAnchorEl(null);
     };
 
-  // ===============================
-  // Dashboard
-  // ===============================
+  // =====================================
+  // DASHBOARD
+  // =====================================
 
   const handleDashboard =
     () => {
       handleMenuClose();
 
-      if (!user) return;
+      if (!user) {
+        return;
+      }
 
       const role =
         user.role
@@ -153,23 +350,65 @@ export default function Navbar() {
       );
     };
 
-  // ===============================
-  // Logout
-  // ===============================
+  // =====================================
+  // LOGOUT
+  // =====================================
 
   const handleLogout =
-    () => {
+    async () => {
       handleMenuClose();
 
-      // Clear Redux +
-      // localStorage
-      dispatch(logout());
+      try {
+        await logoutUser(
+          Cookies.get("refreshToken")
+        ).unwrap();
+      } catch {
+        // Clear local authentication even when the session has expired.
+      }
 
-      // Redirect home
-      router.replace("/");
+      // =================================
+      // CLEAR REDUX + COOKIES
+      // =================================
+
+      dispatch(
+        logout()
+      );
+
+      // =================================
+      // CLEAR RTK QUERY CACHE
+      // =================================
+
+      dispatch(
+        baseApi.util
+          .resetApiState()
+      );
+
+      // =================================
+      // REMOVE OLD TOKEN COOKIE
+      // =================================
+
+      Cookies.remove(
+        "token"
+      );
+
+      // =================================
+      // REDIRECT
+      // =================================
+
+      router.replace(
+        "/"
+      );
 
       router.refresh();
     };
+
+  // =====================================
+  // PREVENT LOGIN BUTTON FLASH
+  // =====================================
+
+  if (!authReady) {
+    return null;
+  }
 
   return (
     <AppBar
@@ -177,20 +416,24 @@ export default function Navbar() {
       elevation={0}
       sx={{
         bgcolor: "#fff",
+
         color: "#222",
+
         borderBottom:
           "1px solid #eee",
       }}
     >
-      <Container maxWidth="xl">
+      <Container
+        maxWidth="xl"
+      >
         <Toolbar
           sx={{
             py: 1,
           }}
         >
-          {/* =====================
+          {/* =========================
               LOGO
-          ===================== */}
+          ========================= */}
 
           <Typography
             component={Link}
@@ -211,9 +454,9 @@ export default function Navbar() {
             🌿 AgroSphere
           </Typography>
 
-          {/* =====================
+          {/* =========================
               NAVIGATION
-          ===================== */}
+          ========================= */}
 
           <Box
             sx={{
@@ -279,23 +522,28 @@ export default function Navbar() {
             )}
           </Box>
 
-          {/* =====================
+          {/* =========================
               AUTH SECTION
-          ===================== */}
+          ========================= */}
 
           <Box
             sx={{
               ml: 3,
+
               display: "flex",
+
               alignItems:
                 "center",
+
               gap: 1,
             }}
           >
             {!isAuthenticated ||
             !user ? (
               <>
-                {/* LOGIN */}
+                {/* =================
+                    LOGIN
+                ================= */}
 
                 <Button
                   variant="outlined"
@@ -307,7 +555,9 @@ export default function Navbar() {
                   Login
                 </Button>
 
-                {/* REGISTER */}
+                {/* =================
+                    REGISTER
+                ================= */}
 
                 <Button
                   variant="contained"
@@ -322,7 +572,7 @@ export default function Navbar() {
             ) : (
               <>
                 {/* =================
-                    LOGGED USER
+                    USER BUTTON
                 ================= */}
 
                 <Button
@@ -396,8 +646,16 @@ export default function Navbar() {
                   </Box>
                 </Button>
 
+                <Button
+                  color="error"
+                  onClick={handleLogout}
+                  startIcon={<LogoutIcon />}
+                >
+                  Logout
+                </Button>
+
                 {/* =================
-                    USER DROPDOWN
+                    USER MENU
                 ================= */}
 
                 <Menu
@@ -413,24 +671,30 @@ export default function Navbar() {
                   anchorOrigin={{
                     vertical:
                       "bottom",
+
                     horizontal:
                       "right",
                   }}
                   transformOrigin={{
                     vertical:
                       "top",
+
                     horizontal:
                       "right",
                   }}
                 >
-                  {/* USER INFO */}
+                  {/* =================
+                      USER INFO
+                  ================= */}
 
                   <Box
                     sx={{
                       px: 2,
+
                       py: 1,
+
                       minWidth:
-                        200,
+                        220,
                     }}
                   >
                     <Typography
@@ -451,9 +715,24 @@ export default function Navbar() {
                         user.email
                       }
                     </Typography>
+
+                    <Typography
+                      variant="caption"
+                      color="primary.main"
+                      sx={{
+                        textTransform:
+                          "capitalize",
+                      }}
+                    >
+                      {
+                        user.role
+                      }
+                    </Typography>
                   </Box>
 
-                  {/* DASHBOARD */}
+                  {/* =================
+                      DASHBOARD
+                  ================= */}
 
                   <MenuItem
                     onClick={
@@ -470,26 +749,6 @@ export default function Navbar() {
                     Dashboard
                   </MenuItem>
 
-                  {/* LOGOUT */}
-
-                  <MenuItem
-                    onClick={
-                      handleLogout
-                    }
-                    sx={{
-                      color:
-                        "error.main",
-                    }}
-                  >
-                    <LogoutIcon
-                      fontSize="small"
-                      sx={{
-                        mr: 1,
-                      }}
-                    />
-
-                    Logout
-                  </MenuItem>
                 </Menu>
               </>
             )}

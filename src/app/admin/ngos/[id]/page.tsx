@@ -23,6 +23,12 @@ import EditIcon from "@mui/icons-material/Edit";
 
 import { useGetNgoByIdQuery } from "@/src/redux/api/ngoApi";
 
+const imageUrl = (value?: string) => {
+  if (!value) return undefined;
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  return `${process.env.NEXT_PUBLIC_API_URL}/${value.replace(/^\//, "")}`;
+};
+
 export default function NgoDetailsPage() {
   const router = useRouter();
 
@@ -37,7 +43,6 @@ export default function NgoDetailsPage() {
   } = useGetNgoByIdQuery(id);
 
   const ngo =
-    data?.ngo ??
     data?.data;
 
   if (isLoading) {
@@ -100,7 +105,12 @@ export default function NgoDetailsPage() {
               mb={4}
             >
               <Avatar
-                src={ngo.profileImage}
+                src={imageUrl(
+                  ngo.logo ||
+                    (typeof ngo.user === "string"
+                      ? undefined
+                      : ngo.user.image)
+                )}
                 sx={{
                   width: 120,
                   height: 120,
@@ -108,7 +118,7 @@ export default function NgoDetailsPage() {
               />
 
               <Typography variant="h4">
-                {ngo.name}
+                {ngo.organizationName}
               </Typography>
 
               <Stack
@@ -117,12 +127,12 @@ export default function NgoDetailsPage() {
               >
                 <Chip
                   label={
-                    ngo.isVerified
+                    ngo.user && typeof ngo.user !== "string" && ngo.user.isVerified
                       ? "Verified"
                       : "Pending"
                   }
                   color={
-                    ngo.isVerified
+                    ngo.user && typeof ngo.user !== "string" && ngo.user.isVerified
                       ? "success"
                       : "warning"
                   }
@@ -130,12 +140,12 @@ export default function NgoDetailsPage() {
 
                 <Chip
                   label={
-                    ngo.isBlocked
+                    ngo.user && typeof ngo.user !== "string" && ngo.user.isBlocked
                       ? "Blocked"
                       : "Active"
                   }
                   color={
-                    ngo.isBlocked
+                    ngo.user && typeof ngo.user !== "string" && ngo.user.isBlocked
                       ? "error"
                       : "success"
                   }
@@ -160,7 +170,7 @@ export default function NgoDetailsPage() {
                 </Typography>
 
                 <Typography>
-                  {ngo.name}
+                  {ngo.organizationName}
                 </Typography>
               </Grid>
 
@@ -175,7 +185,7 @@ export default function NgoDetailsPage() {
                 </Typography>
 
                 <Typography>
-                  {ngo.email}
+                  {typeof ngo.user === "string" ? "-" : ngo.user.email}
                 </Typography>
               </Grid>
 
@@ -190,7 +200,7 @@ export default function NgoDetailsPage() {
                 </Typography>
 
                 <Typography>
-                  {ngo.phone}
+                  {typeof ngo.user === "string" ? "-" : ngo.user.phone}
                 </Typography>
               </Grid>
 
@@ -205,7 +215,7 @@ export default function NgoDetailsPage() {
                 </Typography>
 
                 <Typography>
-                  {ngo.role}
+                  {typeof ngo.user === "string" ? "-" : ngo.user.role}
                 </Typography>
               </Grid>
 

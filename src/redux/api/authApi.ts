@@ -69,6 +69,14 @@ export const authApi =
         }),
       }),
 
+      logout: builder.mutation({
+        query: (refreshToken?: string) => ({
+          url: "/logout",
+          method: "POST",
+          body: { refreshToken },
+        }),
+      }),
+
       verifyEmail:
         builder.mutation({
           query: (
@@ -110,6 +118,7 @@ builder.mutation({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useLogoutMutation,
   useVerifyEmailMutation,
   useResendOTPMutation,
   useForgotPasswordMutation,

@@ -5,11 +5,12 @@ import {
   Box,
   CircularProgress,
   Container,
+  Paper,
   Stack,
   Typography,
 } from "@mui/material";
 
-import NgoProfileCard from "@/src/components/ngo/NgoProfileCard";
+import NgoDetailsHeader from "@/src/components/public/ngo/NgoDetailsHeader";
 
 import {
   useGetMyNgoQuery,
@@ -24,7 +25,6 @@ export default function NgoProfilePage() {
   } = useGetMyNgoQuery();
 
   const ngo =
-    data?.ngo ??
     data?.data;
 
   if (isLoading) {
@@ -74,9 +74,21 @@ export default function NgoProfilePage() {
           information.
         </Typography>
 
-        <NgoProfileCard
-          ngo={ngo}
-        />
+        <NgoDetailsHeader ngo={ngo} />
+
+        <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={2}>
+            <Typography variant="h6" fontWeight={700}>
+              About this organization
+            </Typography>
+            <Typography color="text.secondary">
+              {ngo.description || "No description provided."}
+            </Typography>
+            <Typography>
+              Website: {ngo.website || "Not provided"}
+            </Typography>
+          </Stack>
+        </Paper>
 
       </Stack>
     </Container>

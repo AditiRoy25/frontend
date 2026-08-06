@@ -64,34 +64,34 @@ export const farmerApi = baseApi.injectEndpoints({
     // PUT /admin/farmers/:id/block
     // ===========================
 
-    blockFarmer: builder.mutation<
-      SingleResponse<IFarmer>,
-      string
-    >({
-      query: (id) => ({
-        url: `/admin/farmers/${id}/block`,
-        method: "PUT",
-      }),
+    // blockFarmer: builder.mutation<
+    //   SingleResponse<IFarmer>,
+    //   string
+    // >({
+    //   query: (id) => ({
+    //     url: `/admin/farmers/${id}/block`,
+    //     method: "PUT",
+    //   }),
 
-      invalidatesTags: ["Farmers"],
-    }),
+    //   invalidatesTags: ["Farmers"],
+    // }),
 
     // ===========================
     // Unblock Farmer
     // PUT /admin/farmers/:id/unblock
     // ===========================
 
-    unblockFarmer: builder.mutation<
-      SingleResponse<IFarmer>,
-      string
-    >({
-      query: (id) => ({
-        url: `/admin/farmers/${id}/unblock`,
-        method: "PUT",
-      }),
+    // unblockFarmer: builder.mutation<
+    //   SingleResponse<IFarmer>,
+    //   string
+    // >({
+    //   query: (id) => ({
+    //     url: `/admin/farmers/${id}/unblock`,
+    //     method: "PUT",
+    //   }),
 
-      invalidatesTags: ["Farmers"],
-    }),
+    //   invalidatesTags: ["Farmers"],
+    // }),
   }),
 
   overrideExisting: false,
@@ -100,6 +100,6 @@ export const farmerApi = baseApi.injectEndpoints({
 export const {
   useGetFarmersQuery,
   useGetFarmerByIdQuery,
-  useBlockFarmerMutation,
-  useUnblockFarmerMutation,
+  // useBlockFarmerMutation,
+  // useUnblockFarmerMutation,
 } = farmerApi;

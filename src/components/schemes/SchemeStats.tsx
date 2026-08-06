@@ -13,39 +13,76 @@ import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlin
 import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 
-const stats = [
-  {
-    title: "Total Schemes",
-    value: 28,
-    subtitle: "Government schemes",
-    icon: <EmojiEventsOutlinedIcon color="success" />,
-  },
-  {
-    title: "Central Schemes",
-    value: 16,
-    subtitle: "Available nationwide",
-    icon: <AccountBalanceOutlinedIcon color="success" />,
-  },
-  {
-    title: "State Schemes",
-    value: 12,
-    subtitle: "State specific",
-    icon: <LocationCityOutlinedIcon color="success" />,
-  },
-  {
-    title: "Eligible Schemes",
-    value: 12,
-    subtitle: "Based on filters",
-    icon: <CheckCircleOutlineOutlinedIcon color="success" />,
-  },
-];
+// ==========================================
+// PROPS
+// ==========================================
 
-export default function SchemeStats() {
+interface SchemeStatsProps {
+  totalSchemes?: number;
+  centralSchemes?: number;
+  stateSchemes?: number;
+  eligibleSchemes?: number;
+}
+
+// ==========================================
+// COMPONENT
+// ==========================================
+
+export default function SchemeStats({
+  totalSchemes = 0,
+  centralSchemes = 0,
+  stateSchemes = 0,
+  eligibleSchemes = 0,
+}: SchemeStatsProps) {
+  const stats = [
+    {
+      title: "Total Schemes",
+      value: totalSchemes,
+      subtitle: "Government schemes available",
+      icon: (
+        <EmojiEventsOutlinedIcon
+          color="success"
+          fontSize="large"
+        />
+      ),
+    },
+    {
+      title: "Central Schemes",
+      value: centralSchemes,
+      subtitle: "Available across India",
+      icon: (
+        <AccountBalanceOutlinedIcon
+          color="success"
+          fontSize="large"
+        />
+      ),
+    },
+    {
+      title: "State Schemes",
+      value: stateSchemes,
+      subtitle: "State specific schemes",
+      icon: (
+        <LocationCityOutlinedIcon
+          color="success"
+          fontSize="large"
+        />
+      ),
+    },
+    {
+      title: "Eligible Schemes",
+      value: eligibleSchemes,
+      subtitle: "Eligible for current filters",
+      icon: (
+        <CheckCircleOutlineOutlinedIcon
+          color="success"
+          fontSize="large"
+        />
+      ),
+    },
+  ];
+
   return (
-    <Grid
-      container
-      spacing={2}
-    >
+    <Grid container spacing={3}>
       {stats.map((item) => (
         <Grid
           key={item.title}
@@ -59,19 +96,27 @@ export default function SchemeStats() {
             elevation={0}
             sx={{
               borderRadius: 4,
-              border: "1px solid #ECECEC",
+              border: "1px solid",
+              borderColor: "divider",
               height: "100%",
+              transition: "0.3s",
+
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 4,
+                borderColor: "success.main",
+              },
             }}
           >
             <CardContent>
               <Stack
-                sx={{direction:"row",
-                spacing:2,
-                alignItems:"center"}}
+                direction="row"
+                spacing={2}
+                alignItems="center"
               >
                 {item.icon}
 
-                <div>
+                <Stack spacing={0.5}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -81,7 +126,8 @@ export default function SchemeStats() {
 
                   <Typography
                     variant="h4"
-                    sx={{fontWeight:700}}
+                    color="success.main"
+                    fontWeight={700}
                   >
                     {item.value}
                   </Typography>
@@ -92,7 +138,7 @@ export default function SchemeStats() {
                   >
                     {item.subtitle}
                   </Typography>
-                </div>
+                </Stack>
               </Stack>
             </CardContent>
           </Card>

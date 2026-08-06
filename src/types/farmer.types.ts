@@ -1,6 +1,9 @@
 import type { IUser } from "./user.types";
 
-export type IFarmer = IUser;
+export interface IFarmer extends IUser {
+  // The profile endpoint uses profileImage while the farmers endpoint uses image.
+  profileImage?: string;
+}
 
 export interface FarmerQuery {
   page?: number;

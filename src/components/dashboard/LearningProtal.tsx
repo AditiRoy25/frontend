@@ -16,14 +16,26 @@ import {
 
 import SchoolIcon from "@mui/icons-material/School";
 
-import { useProgressQuery } from "@/src/redux/api/learningApi";
+import {
+  useGetMyCoursesQuery,
+} from "../../redux/api/learningApi";
 
 export default function LearningPortal() {
+  // ==========================================
+  // GET FARMER COURSES
+  // ==========================================
+
   const {
     data,
     isLoading,
+    isFetching,
     isError,
-  } = useProgressQuery(undefined);
+    refetch,
+  } = useGetMyCoursesQuery();
+
+  // ==========================================
+  // LOADING
+  // ==========================================
 
   if (isLoading) {
     return (
@@ -31,13 +43,19 @@ export default function LearningPortal() {
         elevation={0}
         sx={{
           borderRadius: 4,
-          border: "1px solid #ECECEC",
+          border: "1px solid",
+          borderColor: "divider",
           height: "100%",
         }}
       >
         <CardContent>
           <Box
-            sx={{ display: "flex", justifyContent: "center", py: 5 }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: 5,
+            }}
           >
             <CircularProgress />
           </Box>
@@ -46,115 +64,326 @@ export default function LearningPortal() {
     );
   }
 
+  // ==========================================
+  // ERROR
+  // ==========================================
+
   if (isError) {
-    return (
-      <Alert severity="error">
-        Failed to load learning progress.
-      </Alert>
-    );
-  }
-
-  const course = data?.course;
-
-  if (!course) {
     return (
       <Card
         elevation={0}
         sx={{
           borderRadius: 4,
-          border: "1px solid #ECECEC",
+          border: "1px solid",
+          borderColor: "divider",
           height: "100%",
         }}
       >
         <CardContent>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700 }}
+          <Alert
+            severity="error"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  refetch()
+                }
+              >
+                Retry
+              </Button>
+            }
           >
-            Learning Portal
-          </Typography>
-
-          <Typography
-            color="text.secondary"
-            sx={{ mt: 2 }}
-          >
-            No active course found.
-          </Typography>
-
-          <Button
-            component={Link}
-            href="/learning"
-            variant="contained"
-            fullWidth
-            sx={{ mt: 3 }}
-          >
-            Browse Courses
-          </Button>
+            Failed to load learning
+            progress.
+          </Alert>
         </CardContent>
       </Card>
     );
   }
+
+  // ==========================================
+  // MY ENROLLMENTS
+  // ==========================================
+
+  const enrollments =
+    data?.data ?? [];
+
+  // Find an unfinished course first.
+  // Otherwise use the first enrollment.
+
+  const enrollment =
+    enrollments.find(
+      (item) =>
+        item.status !==
+        "completed"
+    ) ??
+    enrollments[0];
+
+  // ==========================================
+  // EMPTY
+  // ==========================================
+
+  if (
+    !enrollment ||
+    !enrollment.course
+  ) {
+    return (
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 4,
+          border: "1px solid",
+          borderColor: "divider",
+          height: "100%",
+        }}
+      >
+        <CardContent>
+          <Stack
+            spacing={2}
+            sx={{
+              height: "100%",
+            }}
+          >
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems:
+                  "center",
+              }}
+            >
+              <SchoolIcon
+                sx={{
+                  color:
+                    "success.main",
+                }}
+              />
+
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                }}
+              >
+                Learning Portal
+              </Typography>
+            </Stack>
+
+            <Typography
+              color="text.secondary"
+            >
+              You have not enrolled
+              in any courses yet.
+            </Typography>
+
+            <Button
+              component={Link}
+              href="/learning/courses"
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: "auto",
+              }}
+            >
+              Browse Courses
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ==========================================
+  // COURSE
+  // ==========================================
+
+  const course =
+    enrollment.course;
+
+  const progress =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        enrollment.progress ??
+          0
+      )
+    );
+
+  // ==========================================
+  // UI
+  // ==========================================
 
   return (
     <Card
       elevation={0}
       sx={{
         borderRadius: 4,
-        border: "1px solid #ECECEC",
+
+        border: "1px solid",
+
+        borderColor:
+          "divider",
+
         height: "100%",
       }}
     >
       <CardContent>
-        <Stack
-          spacing={1}
-          sx={{ flexDirection: "row", alignItems: "center", mb: 3 }}
-        >
-          <SchoolIcon color="success" />
+        <Stack spacing={3}>
+          {/* ==================================
+              HEADER
+          ================================== */}
+
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              alignItems:
+                "center",
+            }}
+          >
+            <SchoolIcon
+              sx={{
+                color:
+                  "success.main",
+              }}
+            />
+
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+              }}
+            >
+              Learning Progress
+            </Typography>
+          </Stack>
+
+          {/* ==================================
+              COURSE
+          ================================== */}
+
+          <Box>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: 17,
+              }}
+            >
+              {course.title}
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 0.5,
+                color:
+                  "text.secondary",
+              }}
+            >
+              {course.category}
+            </Typography>
+          </Box>
+
+          {/* ==================================
+              PROGRESS
+          ================================== */}
+
+          <Box>
+            <Stack
+              direction="row"
+              sx={{
+                justifyContent:
+                  "space-between",
+
+                alignItems:
+                  "center",
+
+                mb: 1,
+              }}
+            >
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                Course Progress
+              </Typography>
+
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 700,
+                  color:
+                    "success.main",
+                }}
+              >
+                {progress}%
+              </Typography>
+            </Stack>
+
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{
+                height: 8,
+
+                borderRadius: 10,
+
+                "& .MuiLinearProgress-bar":
+                  {
+                    borderRadius:
+                      10,
+                  },
+              }}
+            />
+          </Box>
+
+          {/* ==================================
+              STATUS
+          ================================== */}
 
           <Typography
-            variant="h6"
-            sx={{ fontWeight: 700 }}
+            variant="body2"
+            sx={{
+              color:
+                "text.secondary",
+            }}
           >
-            Learning Progress
+            {enrollment.status ===
+            "completed"
+              ? "Course completed"
+              : `${progress}% Completed`}
           </Typography>
+
+          {/* ==================================
+              BUTTON
+          ================================== */}
+
+          <Button
+            component={Link}
+
+            href={`/learning/courses/${course._id}`}
+
+            variant={
+              enrollment.status ===
+              "completed"
+                ? "outlined"
+                : "contained"
+            }
+
+            fullWidth
+
+            disabled={
+              isFetching
+            }
+          >
+            {enrollment.status ===
+            "completed"
+              ? "View Course"
+              : "Continue Learning"}
+          </Button>
         </Stack>
-
-        <Typography sx={{ fontWeight: 600 }}>
-          {course.title}
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mt: 1 }}
-        >
-          {course.category}
-        </Typography>
-
-        <LinearProgress
-          variant="determinate"
-          value={course.progress}
-          sx={{
-            mt: 3,
-            mb: 2,
-            height: 8,
-            borderRadius: 10,
-          }}
-        />
-
-        <Typography color="text.secondary">
-          {course.progress}% Completed
-        </Typography>
-
-        <Button
-          component={Link}
-          href={`/learning/${course._id}`}
-          variant="outlined"
-          fullWidth
-          sx={{ mt: 3 }}
-        >
-          Continue Learning
-        </Button>
       </CardContent>
     </Card>
   );

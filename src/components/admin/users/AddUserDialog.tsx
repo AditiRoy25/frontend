@@ -1,486 +1,804 @@
 "use client";
 
-import { useState } from "react";
+import {
+  ChangeEvent,
+  useEffect,
+  useState,
+} from "react";
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Alert,
+  Avatar,
+  Box,
   Button,
-  Grid,
-  TextField,
-  MenuItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
-  InputAdornment,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import CloseIcon from "@mui/icons-material/Close";
-
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 import {
-  addUserSchema,
-  AddUserForm,
-} from "../../../validations/userValidation";
-import { SubmitHandler } from "react-hook-form";
+  Controller,
+  useForm,
+} from "react-hook-form";
+
+import {
+  useCreateUserMutation,
+} from "@/src/redux/api/adminApi";
+
+// ====================================
+// TYPES
+// ====================================
+
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-const roles = [
-  {
-    label: "Farmer",
-    value: "farmer",
-  },
-  {
-    label: "NGO",
-    value: "ngo",
-  },
-  {
-    label: "Officer",
-    value: "officer",
-  },
-  {
-    label: "Ministry",
-    value: "ministry",
-  },
-  {
-    label: "Admin",
-    value: "admin",
-  },
-];
+interface AddUserFormValues {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
 
-const genders = [
-  {
-    label: "Male",
-    value: "male",
-  },
-  {
-    label: "Female",
-    value: "female",
-  },
-  {
-    label: "Other",
-    value: "other",
-  },
-];
+  role:
+    | "farmer"
+    | "ngo"
+    | "officer"
+    | "ministry"
+    | "admin";
+
+  gender:
+    | ""
+    | "male"
+    | "female"
+    | "other";
+
+  address: string;
+  district: string;
+  state: string;
+
+  image: File | null;
+}
+
+// ====================================
+// INITIAL VALUES
+// ====================================
+
+const initialValues: AddUserFormValues = {
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  role: "farmer",
+  gender: "",
+  address: "",
+  district: "",
+  state: "",
+  image: null,
+};
 
 export default function AddUserDialog({
   open,
   onClose,
 }: Props) {
-  const [showPassword, setShowPassword] =
-    useState(false);
+  // ====================================
+  // API
+  // ====================================
 
   const [
-    showConfirmPassword,
-    setShowConfirmPassword,
-  ] = useState(false);
+    createUser,
+    {
+      isLoading,
+      error,
+      reset: resetMutation,
+    },
+  ] = useCreateUserMutation();
+
+  // ====================================
+  // IMAGE PREVIEW
+  // ====================================
+
+  const [
+    imagePreview,
+    setImagePreview,
+  ] = useState<string | null>(
+    null
+  );
+
+  // ====================================
+  // FORM
+  // ====================================
 
   const {
-  register,
-  handleSubmit,
-  setValue,
-  formState: { errors },
-} = useForm<AddUserForm>({
-  resolver: yupResolver(addUserSchema),
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: {
+      errors,
+    },
+  } =
+    useForm<AddUserFormValues>({
+      defaultValues:
+        initialValues,
+    });
 
-  defaultValues: {
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-    role: "",
-    gender: "",
-    address: "",
-    district: "",
-    state: "",
-    image: null,
-  },
-});
+  // ====================================
+  // CLEAN IMAGE PREVIEW
+  // ====================================
 
- 
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(
+          imagePreview
+        );
+      }
+    };
+  }, [imagePreview]);
 
-const onSubmit: SubmitHandler<AddUserForm> = (
-  data
-) => {
-  console.log(data);
-  onClose();
-};
+  // ====================================
+  // IMAGE CHANGE
+  // ====================================
+
+  const handleImageChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    // Validate file type
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+      return;
+    }
+
+    // 5MB validation
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      return;
+    }
+
+    if (imagePreview) {
+      URL.revokeObjectURL(
+        imagePreview
+      );
+    }
+
+    setValue(
+      "image",
+      file,
+      {
+        shouldValidate: true,
+      }
+    );
+
+    setImagePreview(
+      URL.createObjectURL(
+        file
+      )
+    );
+  };
+
+  // ====================================
+  // REMOVE IMAGE
+  // ====================================
+
+  const handleRemoveImage =
+    () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(
+          imagePreview
+        );
+      }
+
+      setImagePreview(null);
+
+      setValue(
+        "image",
+        null
+      );
+    };
+
+  // ====================================
+  // CLOSE
+  // ====================================
+
+  const handleClose = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(
+        imagePreview
+      );
+    }
+
+    setImagePreview(null);
+
+    reset(initialValues);
+
+    resetMutation();
+
+    onClose();
+  };
+
+  // ====================================
+  // SUBMIT
+  // ====================================
+
+  const onSubmit = async (
+    values: AddUserFormValues
+  ) => {
+    try {
+      const formData =
+        new FormData();
+
+      formData.append(
+        "name",
+        values.name
+      );
+
+      formData.append(
+        "email",
+        values.email
+      );
+
+      formData.append(
+        "phone",
+        values.phone
+      );
+
+      formData.append(
+        "password",
+        values.password
+      );
+
+      formData.append(
+        "role",
+        values.role
+      );
+
+      if (values.gender) {
+        formData.append(
+          "gender",
+          values.gender
+        );
+      }
+
+      if (values.address) {
+        formData.append(
+          "address",
+          values.address
+        );
+      }
+
+      if (values.district) {
+        formData.append(
+          "district",
+          values.district
+        );
+      }
+
+      if (values.state) {
+        formData.append(
+          "state",
+          values.state
+        );
+      }
+
+      // ==============================
+      // IMAGE
+      // ==============================
+
+      if (values.image) {
+        formData.append(
+          "image",
+          values.image
+        );
+      }
+
+      // Debug
+
+      for (
+        const [key, value]
+        of formData.entries()
+      ) {
+        console.log(
+          key,
+          value
+        );
+      }
+
+      const response =
+        await createUser(
+          formData
+        ).unwrap();
+
+      console.log(
+        "User created:",
+        response
+      );
+
+      handleClose();
+    } catch (err) {
+      console.error(
+        "Create User Error:",
+        err
+      );
+    }
+  };
+
+  // ====================================
+  // API ERROR
+  // ====================================
+
+  const apiError =
+    error &&
+    "data" in error
+      ? (
+          error.data as {
+            message?: string;
+          }
+        )?.message
+      : undefined;
 
   return (
-  <Dialog
-    open={open}
-    onClose={onClose}
-    fullWidth
-    maxWidth="md"
-  >
-    <form
-      onSubmit={handleSubmit(onSubmit)}
+    <Dialog
+      open={open}
+      onClose={
+        isLoading
+          ? undefined
+          : handleClose
+      }
+      fullWidth
+      maxWidth="sm"
     >
-      <DialogTitle
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        Add User
+      {/* ==========================
+          HEADER
+      ========================== */}
 
-        <IconButton onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
+      <DialogTitle>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Typography
+            variant="h6"
+            fontWeight={700}
+          >
+            Add New User
+          </Typography>
+
+          <IconButton
+            onClick={
+              handleClose
+            }
+            disabled={
+              isLoading
+            }
+          >
+            <CloseIcon />
+          </IconButton>
+        </Stack>
       </DialogTitle>
 
-      <DialogContent dividers>
-        <Grid
-          container
-          spacing={2}
+      {/* ==========================
+          FORM
+      ========================== */}
+
+      <Box
+        component="form"
+        onSubmit={handleSubmit(
+          onSubmit
+        )}
+      >
+        <DialogContent
+          dividers
         >
-          {/* Name */}
+          <Stack spacing={2.5}>
+            {/* API ERROR */}
 
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Full Name"
-              {...register("name")}
-              error={!!errors.name}
-              helperText={
-                errors.name?.message
-              }
-            />
-          </Grid>
+            {apiError && (
+              <Alert severity="error">
+                {apiError}
+              </Alert>
+            )}
 
-          {/* Email */}
+            {/* ======================
+                IMAGE
+            ====================== */}
 
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Email"
-              {...register("email")}
-              error={!!errors.email}
-              helperText={
-                errors.email?.message
-              }
-            />
-          </Grid>
-
-          {/* Phone */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Phone Number"
-              {...register("phone")}
-              error={!!errors.phone}
-              helperText={
-                errors.phone?.message
-              }
-            />
-          </Grid>
-
-          {/* Role */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              select
-              fullWidth
-              label="Role"
-              defaultValue=""
-              {...register("role")}
-              error={!!errors.role}
-              helperText={
-                errors.role?.message
-              }
+            <Stack
+              alignItems="center"
+              spacing={2}
             >
-              {roles.map((role) => (
-                <MenuItem
-                  key={role.value}
-                  value={role.value}
-                >
-                  {role.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          {/* Gender */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              select
-              fullWidth
-              label="Gender"
-              defaultValue=""
-              {...register("gender")}
-              error={!!errors.gender}
-              helperText={
-                errors.gender?.message
-              }
-            >
-              {genders.map(
-                (gender) => (
-                  <MenuItem
-                    key={gender.value}
-                    value={
-                      gender.value
-                    }
-                  >
-                    {gender.label}
-                  </MenuItem>
-                )
-              )}
-            </TextField>
-          </Grid>
-
-          {/* State */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="State"
-              {...register("state")}
-              error={!!errors.state}
-              helperText={
-                errors.state?.message
-              }
-            />
-          </Grid>
-
-          {/* District */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="District"
-              {...register(
-                "district"
-              )}
-              error={
-                !!errors.district
-              }
-              helperText={
-                errors.district
-                  ?.message
-              }
-            />
-          </Grid>
-
-          {/* Address */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              label="Address"
-              {...register(
-                "address"
-              )}
-              error={
-                !!errors.address
-              }
-              helperText={
-                errors.address
-                  ?.message
-              }
-            />
-          </Grid>
-
-          {/* Upload Image */}
-
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <Button
-              variant="outlined"
-              component="label"
-              fullWidth
-            >
-              Upload Image
-
-              <input
-                hidden
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file =
-                    e.target
-                      .files?.[0] ??
-                    null;
-
-                  setValue(
-                    "image",
-                    file,
-                    {
-                      shouldValidate: true,
-                    }
-                  );
+              <Avatar
+                src={
+                  imagePreview ??
+                  undefined
+                }
+                sx={{
+                  width: 110,
+                  height: 110,
+                  fontSize: 35,
                 }}
               />
-            </Button>
-          </Grid> 
 
-                    {/* Password */}
+              <Stack
+                direction="row"
+                spacing={1}
+              >
+                <Button
+                  component="label"
+                  variant="outlined"
+                  startIcon={
+                    <CloudUploadIcon />
+                  }
+                >
+                  Upload Image
 
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Password"
-              type={
-                showPassword
-                  ? "text"
-                  : "password"
-              }
-              {...register("password")}
-              error={!!errors.password}
-              helperText={
-                errors.password?.message
-              }
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() =>
-                          setShowPassword(
-                            !showPassword
-                          )
-                        }
-                      >
-                        {showPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Grid>
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    onChange={
+                      handleImageChange
+                    }
+                  />
+                </Button>
 
-          {/* Confirm Password */}
+                {imagePreview && (
+                  <Button
+                    color="error"
+                    onClick={
+                      handleRemoveImage
+                    }
+                  >
+                    Remove
+                  </Button>
+                )}
+              </Stack>
 
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Confirm Password"
-              type={
-                showConfirmPassword
-                  ? "text"
-                  : "password"
-              }
-              {...register(
-                "confirmPassword"
+              <Typography
+                variant="caption"
+                color="text.secondary"
+              >
+                JPG, PNG or WEBP.
+                Maximum 5MB.
+              </Typography>
+            </Stack>
+
+            {/* Register image with RHF */}
+
+            <Controller
+              name="image"
+              control={control}
+              render={() => (
+                <></>
               )}
-              error={
-                !!errors.confirmPassword
-              }
-              helperText={
-                errors
-                  .confirmPassword
-                  ?.message
-              }
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() =>
-                          setShowConfirmPassword(
-                            !showConfirmPassword
-                          )
-                        }
-                      >
-                        {showConfirmPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+            />
+
+            {/* ======================
+                NAME
+            ====================== */}
+
+            <Controller
+              name="name"
+              control={control}
+              rules={{
+                required:
+                  "Name is required",
+              }}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="Name"
+                  error={
+                    !!errors.name
+                  }
+                  helperText={
+                    errors.name
+                      ?.message
+                  }
+                />
+              )}
+            />
+
+            {/* ======================
+                EMAIL
+            ====================== */}
+
+            <Controller
+              name="email"
+              control={control}
+              rules={{
+                required:
+                  "Email is required",
+
+                pattern: {
+                  value:
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+
+                  message:
+                    "Enter valid email",
                 },
               }}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="email"
+                  label="Email"
+                  error={
+                    !!errors.email
+                  }
+                  helperText={
+                    errors.email
+                      ?.message
+                  }
+                />
+              )}
             />
-          </Grid>
-        </Grid>
-      </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>
-          Cancel
-        </Button>
+            {/* ======================
+                PHONE
+            ====================== */}
 
-        <Button
-          type="submit"
-          variant="contained"
+            <Controller
+              name="phone"
+              control={control}
+              rules={{
+                required:
+                  "Phone is required",
+              }}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="Phone"
+                  error={
+                    !!errors.phone
+                  }
+                  helperText={
+                    errors.phone
+                      ?.message
+                  }
+                />
+              )}
+            />
+
+            {/* ======================
+                PASSWORD
+            ====================== */}
+
+            <Controller
+              name="password"
+              control={control}
+              rules={{
+                required:
+                  "Password is required",
+
+                minLength: {
+                  value: 6,
+
+                  message:
+                    "Minimum 6 characters required",
+                },
+              }}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="password"
+                  label="Password"
+                  error={
+                    !!errors.password
+                  }
+                  helperText={
+                    errors.password
+                      ?.message
+                  }
+                />
+              )}
+            />
+
+            {/* ======================
+                ROLE
+            ====================== */}
+
+            <Controller
+              name="role"
+              control={control}
+              rules={{
+                required:
+                  "Role is required",
+              }}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  select
+                  fullWidth
+                  label="Role"
+                >
+                  <MenuItem value="farmer">
+                    Farmer
+                  </MenuItem>
+
+                  <MenuItem value="ngo">
+                    NGO
+                  </MenuItem>
+
+                  <MenuItem value="officer">
+                    Officer
+                  </MenuItem>
+
+                  <MenuItem value="ministry">
+                    Ministry
+                  </MenuItem>
+
+                  <MenuItem value="admin">
+                    Admin
+                  </MenuItem>
+                </TextField>
+              )}
+            />
+
+            {/* ======================
+                GENDER
+            ====================== */}
+
+            <Controller
+              name="gender"
+              control={control}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  select
+                  fullWidth
+                  label="Gender"
+                >
+                  <MenuItem value="">
+                    Select Gender
+                  </MenuItem>
+
+                  <MenuItem value="male">
+                    Male
+                  </MenuItem>
+
+                  <MenuItem value="female">
+                    Female
+                  </MenuItem>
+
+                  <MenuItem value="other">
+                    Other
+                  </MenuItem>
+                </TextField>
+              )}
+            />
+
+            {/* ======================
+                STATE
+            ====================== */}
+
+            <Controller
+              name="state"
+              control={control}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="State"
+                />
+              )}
+            />
+
+            {/* ======================
+                DISTRICT
+            ====================== */}
+
+            <Controller
+              name="district"
+              control={control}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="District"
+                />
+              )}
+            />
+
+            {/* ======================
+                ADDRESS
+            ====================== */}
+
+            <Controller
+              name="address"
+              control={control}
+              render={({
+                field,
+              }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Address"
+                />
+              )}
+            />
+          </Stack>
+        </DialogContent>
+
+        {/* ==========================
+            ACTIONS
+        ========================== */}
+
+        <DialogActions
+          sx={{ p: 2 }}
         >
-          Save User
-        </Button>
-      </DialogActions>
-    </form>
-  </Dialog>
-);
+          <Button
+            type="button"
+            color="inherit"
+            onClick={
+              handleClose
+            }
+            disabled={
+              isLoading
+            }
+          >
+            Cancel
+          </Button>
+
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={
+              isLoading
+            }
+          >
+            {isLoading
+              ? "Creating..."
+              : "Create User"}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  );
 }

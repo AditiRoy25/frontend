@@ -1,99 +1,193 @@
 "use client";
 
-import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Alert,
+  Box,
   Button,
   Card,
   CardContent,
+  IconButton,
+  InputAdornment,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
 
-import { useChangePasswordMutation } from "@/src/redux/api/profileApi";
+import {
+  Visibility,
+  VisibilityOff,
+  LockOutlined,
+} from "@mui/icons-material";
 
-const schema = yup.object({
-  currentPassword: yup
-    .string()
-    .required("Current password is required"),
+import {
+  useState,
+} from "react";
 
-  newPassword: yup
-    .string()
-    .required("New password is required")
-    .min(
-      6,
-      "Password must be at least 6 characters"
-    ),
-
-  confirmPassword: yup
-    .string()
-    .required("Confirm password is required")
-    .oneOf(
-      [yup.ref("newPassword")],
-      "Passwords do not match"
-    ),
-});
-
-type ChangePasswordForm = yup.InferType<
-  typeof schema
->;
+import {
+  useChangePasswordMutation,
+} from "@/src/redux/api/profileApi";
 
 export default function ChangePassword() {
+  // ================================
+  // FORM
+  // ================================
+
+  const [
+    currentPassword,
+    setCurrentPassword,
+  ] = useState("");
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState("");
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState("");
+
+  // ================================
+  // VISIBILITY
+  // ================================
+
+  const [
+    showCurrent,
+    setShowCurrent,
+  ] = useState(false);
+
+  const [
+    showNew,
+    setShowNew,
+  ] = useState(false);
+
+  const [
+    showConfirm,
+    setShowConfirm,
+  ] = useState(false);
+
+  // ================================
+  // MESSAGE
+  // ================================
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
+
+  // ================================
+  // API
+  // ================================
+
   const [
     changePassword,
-    { isLoading },
+    {
+      isLoading,
+    },
   ] = useChangePasswordMutation();
 
-  const [serverError, setServerError] =
-    useState("");
+  // ================================
+  // SUBMIT
+  // ================================
 
-  const [success, setSuccess] =
-    useState("");
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ChangePasswordForm>({
-    resolver: yupResolver(schema),
-  });
-
-  const onSubmit = async (
-    data: ChangePasswordForm
+  const handleSubmit = async (
+    event: React.FormEvent
   ) => {
-    setServerError("");
-    setSuccess("");
+    event.preventDefault();
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    // Required
+
+    if (
+      !currentPassword ||
+      !newPassword ||
+      !confirmPassword
+    ) {
+      setErrorMessage(
+        "All password fields are required."
+      );
+
+      return;
+    }
+
+    // Length
+
+    if (newPassword.length < 6) {
+      setErrorMessage(
+        "New password must be at least 6 characters."
+      );
+
+      return;
+    }
+
+    // Match
+
+    if (
+      newPassword !==
+      confirmPassword
+    ) {
+      setErrorMessage(
+        "New password and confirm password do not match."
+      );
+
+      return;
+    }
+
+    // Old/new same
+
+    if (
+      currentPassword ===
+      newPassword
+    ) {
+      setErrorMessage(
+        "New password must be different from current password."
+      );
+
+      return;
+    }
 
     try {
-      const res =
+      const response =
         await changePassword({
-          currentPassword:
-            data.currentPassword,
-          newPassword:
-            data.newPassword,
+          currentPassword,
+          newPassword,
         }).unwrap();
 
-      setSuccess(res.message);
+      setSuccessMessage(
+        response.message ||
+          "Password changed successfully."
+      );
 
-      reset();
-    } catch (err: unknown) {
-      const message =
-        typeof err === "object" &&
-        err !== null &&
-        "data" in err &&
-        typeof err.data === "object" &&
-        err.data !== null &&
-        "message" in err.data &&
-        typeof err.data.message === "string"
-          ? err.data.message
-          : "Something went wrong.";
+      // Clear form
 
-      setServerError(message);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+    } catch (error: unknown) {
+      console.error(
+        "CHANGE PASSWORD ERROR:",
+        error
+      );
+
+      const apiError =
+        error as {
+          data?: {
+            message?: string;
+          };
+        };
+
+      setErrorMessage(
+        apiError?.data?.message ||
+          "Failed to change password."
+      );
     }
   };
 
@@ -101,97 +195,236 @@ export default function ChangePassword() {
     <Card
       elevation={0}
       sx={{
+        border: "1px solid",
+        borderColor: "divider",
         borderRadius: 4,
-        border: "1px solid #ECECEC",
       }}
     >
-      <CardContent>
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 700, mb: 3 }}
-        >
-          Change Password
-        </Typography>
+      <CardContent
+        sx={{
+          p: 3,
+        }}
+      >
+        {/* HEADER */}
 
-        <form
-          onSubmit={handleSubmit(
-            onSubmit
-          )}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{
+            mb: 3,
+          }}
         >
-          <Stack spacing={2}>
-            {success && (
-              <Alert severity="success">
-                {success}
-              </Alert>
-            )}
+          <LockOutlined
+            color="success"
+          />
 
-            {serverError && (
-              <Alert severity="error">
-                {serverError}
-              </Alert>
-            )}
+          <Box>
+            <Typography
+              variant="h6"
+              fontWeight={700}
+            >
+              Change Password
+            </Typography>
+
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              Update your account
+              password securely.
+            </Typography>
+          </Box>
+        </Stack>
+
+        {/* ERROR */}
+
+        {errorMessage && (
+          <Alert
+            severity="error"
+            sx={{
+              mb: 2,
+            }}
+          >
+            {errorMessage}
+          </Alert>
+        )}
+
+        {/* SUCCESS */}
+
+        {successMessage && (
+          <Alert
+            severity="success"
+            sx={{
+              mb: 2,
+            }}
+          >
+            {successMessage}
+          </Alert>
+        )}
+
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+        >
+          <Stack spacing={2.5}>
+
+            {/* CURRENT PASSWORD */}
 
             <TextField
               label="Current Password"
-              type="password"
+              type={
+                showCurrent
+                  ? "text"
+                  : "password"
+              }
+              value={
+                currentPassword
+              }
+              onChange={(event) =>
+                setCurrentPassword(
+                  event.target.value
+                )
+              }
               fullWidth
-              {...register(
-                "currentPassword"
-              )}
-              error={
-                !!errors.currentPassword
-              }
-              helperText={
-                errors.currentPassword
-                  ?.message
-              }
+              required
+              autoComplete="current-password"
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        type="button"
+                        onClick={() =>
+                          setShowCurrent(
+                            (value) =>
+                              !value
+                          )
+                        }
+                        edge="end"
+                      >
+                        {showCurrent ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
+
+            {/* NEW PASSWORD */}
 
             <TextField
               label="New Password"
-              type="password"
+              type={
+                showNew
+                  ? "text"
+                  : "password"
+              }
+              value={newPassword}
+              onChange={(event) =>
+                setNewPassword(
+                  event.target.value
+                )
+              }
               fullWidth
-              {...register("newPassword")}
-              error={
-                !!errors.newPassword
-              }
-              helperText={
-                errors.newPassword
-                  ?.message
-              }
+              required
+              autoComplete="new-password"
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        type="button"
+                        onClick={() =>
+                          setShowNew(
+                            (value) =>
+                              !value
+                          )
+                        }
+                        edge="end"
+                      >
+                        {showNew ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
 
+            {/* CONFIRM PASSWORD */}
+
             <TextField
-              label="Confirm Password"
-              type="password"
+              label="Confirm New Password"
+              type={
+                showConfirm
+                  ? "text"
+                  : "password"
+              }
+              value={
+                confirmPassword
+              }
+              onChange={(event) =>
+                setConfirmPassword(
+                  event.target.value
+                )
+              }
               fullWidth
-              {...register(
-                "confirmPassword"
-              )}
-              error={
-                !!errors.confirmPassword
-              }
-              helperText={
-                errors.confirmPassword
-                  ?.message
-              }
+              required
+              autoComplete="new-password"
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        type="button"
+                        onClick={() =>
+                          setShowConfirm(
+                            (value) =>
+                              !value
+                          )
+                        }
+                        edge="end"
+                      >
+                        {showConfirm ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
 
             <Button
               type="submit"
               variant="contained"
+              color="success"
+              fullWidth
               disabled={isLoading}
               sx={{
-                py: 1.5,
+                height: 48,
                 borderRadius: 2,
+                fontWeight: 700,
+                textTransform: "none",
               }}
             >
               {isLoading
-                ? "Changing..."
+                ? "Changing Password..."
                 : "Change Password"}
             </Button>
+
           </Stack>
-        </form>
+        </Box>
       </CardContent>
     </Card>
   );

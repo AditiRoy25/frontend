@@ -66,7 +66,10 @@ export default function LoginPage() {
 
       dispatch(
         setCredentials({
-          user: res.user,
+          user: {
+            ...res.user,
+            _id: res.user._id ?? res.user.id,
+          },
           accessToken:
             res.accessToken,
           refreshToken:

@@ -1,195 +1,322 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   Container,
-  Grid,
-  Pagination,
   Stack,
   Typography,
 } from "@mui/material";
+
+import RefreshIcon from "@mui/icons-material/Refresh";
+
+import {
+  useMemo,
+  useState,
+} from "react";
+
+import Navbar from "@/src/components/common/Navbar";
+
+import NgoHero from "@/src/components/public/ngo/NgoHero";
+
+import NgoFilters from "@/src/components/public/ngo/NgoFilters";
+
+import NgoGrid from "@/src/components/public/ngo/NgoGrid";
 
 import {
   useGetNgosQuery,
 } from "@/src/redux/api/ngoApi";
 
-import type {
-  INgo,
-} from "@/src/types/ngo.types";
+export default function NgoPage() {
 
-import NgoHero from "@/src/components/public/ngo/NgoHero";
-import NgoStatistics from "@/src/components/public/ngo/NgoStatistics";
-import NgoFilters, {
-  NgoFilterValues,
-} from "@/src/components/public/ngo/NgoFilters";
-import NgoCard from "@/src/components/public/ngo/NgoCard";
+  const [search, setSearch] =
+    useState("");
 
-const PAGE_SIZE = 8;
+  const [
+    approvedOnly,
+    setApprovedOnly,
+  ] = useState(false);
 
-export default function PublicNgoPage() {
+  // ============================
+  // API
+  // ============================
+
   const {
     data,
     isLoading,
     isError,
+    isFetching,
     refetch,
-  } = useGetNgosQuery(undefined);
-
-  const [page, setPage] = useState(1);
-
-  const [filters, setFilters] =
-    useState<NgoFilterValues>({
-      search: "",
-      state: "",
-      category: "",
-      verified: false,
-    });
-
-  const ngos = useMemo<INgo[]>(() => {
-  return data?.data ?? [];
-}, [data]);
- const filteredNgos = useMemo(() => {
-  return ngos.filter((ngo) => {
-    const search =
-      ngo.organizationName
-        .toLowerCase()
-        .includes(filters.search.toLowerCase());
-
-    const verified =
-      !filters.verified ||
-      ngo.ministryApproval;
-
-    return search && verified;
+  } = useGetNgosQuery({
+    page: 1,
+    limit: 50,
   });
-}, [ngos, filters]);
-  const totalPages =
-    Math.ceil(
-      filteredNgos.length /
-        PAGE_SIZE
-    );
 
-  const paginated = filteredNgos.slice(
-  (page - 1) * PAGE_SIZE,
-  page * PAGE_SIZE
-);
+  // ============================
+  // NGO DATA
+  // ============================
 
+  const ngos =
+    data?.data ?? [];
+
+  // ============================
+  // FILTER
+  // ============================
+
+  const filteredNgos =
+    useMemo(() => {
+
+      const keyword =
+        search
+          .trim()
+          .toLowerCase();
+
+      return ngos.filter(
+        (ngo) => {
+
+          const matchesSearch =
+            !keyword ||
+            ngo.organizationName
+              ?.toLowerCase()
+              .includes(keyword) ||
+            ngo.registrationNumber
+              ?.toLowerCase()
+              .includes(keyword) ||
+            ngo.address
+              ?.toLowerCase()
+              .includes(keyword);
+
+          const matchesApproval =
+            !approvedOnly ||
+            ngo.ministryApproval ===
+              true;
+
+          return (
+            matchesSearch &&
+            matchesApproval
+          );
+        }
+      );
+
+    }, [
+      ngos,
+      search,
+      approvedOnly,
+    ]);
 
   return (
     <>
+      {/* ==========================
+          NAVBAR
+      ========================== */}
+
+      <Navbar />
+
+      {/* ==========================
+          HERO
+      ========================== */}
+
       <NgoHero />
 
-      <NgoStatistics
-        totalNgos={ngos.length}
-        totalFarmers={0}
-        totalWorkshops={0}
-        totalStates={0}
-      />
+      {/* ==========================
+          MAIN
+      ========================== */}
 
-      <Container
-        maxWidth="xl"
+      <Box
         sx={{
-          py: 5,
+          bgcolor: "#f7faf7",
+          minHeight: "70vh",
+          py: {
+            xs: 4,
+            md: 7,
+          },
         }}
       >
-        <Stack spacing={4}>
+        <Container maxWidth="xl">
 
-          <Typography
-            variant="h4"
-            fontWeight={700}
-          >
-            Partner NGOs
-          </Typography>
+          <Stack spacing={4}>
 
-          <NgoFilters
-            value={filters}
-            onChange={(value) => {
-              setFilters(
-                value
-              );
-              setPage(1);
-            }}
-          />
+            {/* =====================
+                SECTION TITLE
+            ===================== */}
 
-          {isLoading && (
-            <Box
-              py={10}
-              display="flex"
-              justifyContent="center"
-            >
-              <CircularProgress />
+            <Box>
+              <Typography
+                variant="h4"
+                fontWeight={800}
+                sx={{
+                  color: "#17351f",
+                }}
+              >
+                Explore NGOs
+              </Typography>
+
+              <Typography
+                color="text.secondary"
+                sx={{
+                  mt: 1,
+                  maxWidth: 650,
+                }}
+              >
+                Discover verified
+                organizations working
+                with farmers and rural
+                communities across
+                India.
+              </Typography>
             </Box>
-          )}
 
-          {isError && (
-            <Alert
-              severity="error"
-            >
-              Failed to load NGOs.
-            </Alert>
-          )}
+            {/* =====================
+                FILTERS
+            ===================== */}
 
-          {!isLoading &&
-            !isError && (
-              <>
-                <Grid
-                  container
-                  spacing={3}
-                >
-                  {paginated.map(
-                    (ngo) => (
-                      <Grid
-                        key={
-                          ngo._id
-                        }
-                        size={{
-                          xs: 12,
-                          sm: 6,
-                          md: 4,
-                          lg: 3,
-                        }}
-                      >
-                        <NgoCard
-                          ngo={ngo}
-                        />
-                      </Grid>
-                    )
-                  )}
-                </Grid>
+            <NgoFilters
+              search={search}
+              approvedOnly={
+                approvedOnly
+              }
+              onSearchChange={
+                setSearch
+              }
+              onApprovedChange={
+                setApprovedOnly
+              }
+              onReset={() => {
+                setSearch("");
+                setApprovedOnly(
+                  false
+                );
+              }}
+            />
 
-                {totalPages >
-                  1 && (
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    mt={4}
+            {/* =====================
+                ERROR
+            ===================== */}
+
+            {isError && (
+              <Alert
+                severity="error"
+                action={
+                  <Button
+                    color="inherit"
+                    onClick={() =>
+                      refetch()
+                    }
                   >
-                    <Pagination
-                      page={
-                        page
-                      }
-                      count={
-                        totalPages
-                      }
-                      color="primary"
-                      onChange={(
-                        _,
-                        value
-                      ) =>
-                        setPage(
-                          value
-                        )
-                      }
-                    />
-                  </Box>
-                )}
-              </>
+                    Retry
+                  </Button>
+                }
+              >
+                Unable to load NGOs.
+              </Alert>
             )}
 
-        </Stack>
-      </Container>
+            {/* =====================
+                LOADING
+            ===================== */}
+
+            {isLoading ? (
+
+              <Box
+                sx={{
+                  minHeight: 300,
+                  display: "flex",
+                  alignItems:
+                    "center",
+                  justifyContent:
+                    "center",
+                }}
+              >
+                <CircularProgress />
+              </Box>
+
+            ) : !isError &&
+              filteredNgos.length ===
+                0 ? (
+
+              /* ===================
+                  EMPTY
+              =================== */
+
+              <Box
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 4,
+                  border:
+                    "1px solid #e4ebe5",
+                  minHeight: 280,
+                  display: "flex",
+                  alignItems:
+                    "center",
+                  justifyContent:
+                    "center",
+                  textAlign:
+                    "center",
+                  px: 3,
+                }}
+              >
+                <Stack
+                  spacing={2}
+                  alignItems="center"
+                >
+                  <Typography
+                    variant="h5"
+                    fontWeight={700}
+                  >
+                    No NGOs Found
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                  >
+                    Try changing your
+                    search or approval
+                    filter.
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    startIcon={
+                      <RefreshIcon />
+                    }
+                    onClick={() => {
+                      setSearch("");
+                      setApprovedOnly(
+                        false
+                      );
+                      refetch();
+                    }}
+                  >
+                    Reset & Refresh
+                  </Button>
+                </Stack>
+              </Box>
+
+            ) : (
+
+              <NgoGrid
+                ngos={filteredNgos}
+              />
+
+            )}
+
+            {isFetching &&
+              !isLoading && (
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                >
+                  <CircularProgress
+                    size={22}
+                  />
+                </Box>
+              )}
+
+          </Stack>
+        </Container>
+      </Box>
     </>
   );
 }

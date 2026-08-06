@@ -1,49 +1,40 @@
+export interface FarmLocation {
+  lat: number | null;
+  lng: number | null;
+}
+
 export interface Farm {
   _id: string;
-  name: string;
-  cropName: string;
+
+  farmer: string;
+
+  farmName: string;
+
   area: number;
-  areaUnit: "Acre" | "Hectare";
-  location: string;
-  progress: number;
-  status: "Healthy" | "Growing" | "Needs Water" | "Harvested";
-  image?: string;
+
+  soilType: string;
+
+  location: FarmLocation;
+
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FarmsResponse {
+export interface MyFarmsResponse {
   success: boolean;
-  message: string;
+
   farms: Farm[];
 }
 
-export interface FarmResponse {
-  success: boolean;
-  message: string;
-  farm: Farm;
-}
-
 export interface CreateFarmPayload {
-  name: string;
-  cropName: string;
-  area: number;
-  areaUnit: string;
-  location: string;
-  image?: File;
-}
+  farmName: string;
 
-export interface UpdateFarmPayload {
-  id: string;
-  name: string;
-  cropName: string;
   area: number;
-  areaUnit: string;
-  location: string;
-  image?: File;
-}
 
-export interface DeleteFarmResponse {
-  success: boolean;
-  message: string;
+  soilType: string;
+
+  location: {
+    lat: number;
+    lng: number;
+  };
 }

@@ -13,22 +13,22 @@ import {
 
 import FilterListIcon from "@mui/icons-material/FilterList";
 
-import HeroBanner from "@/components/marketplace/HeroBanner";
-import SearchBar from "@/components/marketplace/SearchBar";
-import CategorySidebar from "@/components/marketplace/CategorySidebar";
-import CategoryCards from "@/components/marketplace/CategoryCards";
-import ProductGrid from "@/components/marketplace/ProductGrid";
-import ProductSkeleton from "@/components/marketplace/ProductSkeleton";
-import FeatureSection from "@/components/marketplace/FeatureSection";
-import FilterDrawer from "@/components/marketplace/FilterDrawer";
+import HeroBanner from "../../../components/marketplace/HeroBanner";
+import SearchBar from "../../../components/marketplace/SearchBar";
+import CategorySidebar from "../../../components/marketplace/CategorySidebar";
+import CategoryCards from "../../../components/marketplace/CategoryCards";
+import ProductGrid from "../../../components/marketplace/ProductGrid";
+import ProductSkeleton from "../../../components/marketplace/ProductSkeleton";
+import FeatureSection from "../../../components/marketplace/FeatureSection";
+import FilterDrawer from "../../../components/marketplace/FilterDrawer";
 
 import {
   Product,
   ProductCategory,
   ProductStatus,
-} from "@/types/marketplace.types";
+} from "../../../types/marketplace.types";
 
-import { useGetProductsQuery } from "@/redux/api/marketplaceApi";
+import { useGetProductsQuery } from "../../../redux/api/maketplaceApi";
 
 export default function MarketplacePage() {
   const [search, setSearch] = useState("");

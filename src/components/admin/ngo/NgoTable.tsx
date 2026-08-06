@@ -4,182 +4,433 @@ import {
   Avatar,
   Chip,
   IconButton,
-  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Tooltip,
-  Typography,
 } from "@mui/material";
 
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import BlockIcon from "@mui/icons-material/Block";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import {
+  DataGrid,
+  GridColDef,
+} from "@mui/x-data-grid";
 
-import type { INgo } from "@/src/types/ngo.types";
+import VisibilityIcon from
+  "@mui/icons-material/Visibility";
 
-interface NgoTableProps {
+import EditIcon from
+  "@mui/icons-material/Edit";
+
+import BlockIcon from
+  "@mui/icons-material/Block";
+
+import CheckCircleIcon from
+  "@mui/icons-material/CheckCircle";
+
+import VerifiedIcon from
+  "@mui/icons-material/Verified";
+
+import DeleteIcon from
+  "@mui/icons-material/Delete";
+
+import type {
+  INgo,
+} from "../../../types/ngo.types";
+
+const imageUrl = (value?: string) => {
+  if (!value) return undefined;
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  return `${process.env.NEXT_PUBLIC_API_URL}/${value.replace(/^\//, "")}`;
+};
+
+
+interface Props {
+
   ngos: INgo[];
-  onView: (id: string) => void;
-  onEdit: (id: string) => void;
-  onBlock: (id: string) => void;
-  onUnblock: (id: string) => void;
+
+  onView:
+    (id: string) => void;
+
+  onEdit:
+    (id: string) => void;
+
+  onBlock:
+    (id: string) => void;
+
+  onUnblock:
+    (id: string) => void;
+
+  onApprove?:
+    (id: string) => void;
+
+  onDelete?:
+    (id: string) => void;
 }
+
 
 export default function NgoTable({
   ngos,
+
   onView,
+
   onEdit,
+
   onBlock,
+
   onUnblock,
-}: NgoTableProps) {
-  return (
-    <TableContainer component={Paper}>
-      <Table>
 
-        <TableHead>
-          <TableRow>
-            <TableCell>NGO</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Phone</TableCell>
-            <TableCell>Role</TableCell>
-            <TableCell>Verification</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell align="center">
-              Actions
-            </TableCell>
-          </TableRow>
-        </TableHead>
+  onApprove,
 
-        <TableBody>
-          {ngos.map((ngo) => (
-            <TableRow
-              key={ngo._id}
-              hover
+  onDelete,
+}: Props) {
+
+
+  const columns:
+    GridColDef<INgo>[] = [
+
+    {
+      field: "logo",
+
+      headerName: "Logo",
+
+      width: 80,
+
+      renderCell: ({
+        row,
+      }) => (
+
+        <Avatar
+          src={imageUrl(
+            row.logo ||
+              (typeof row.user === "string"
+                ? undefined
+                : row.user.image)
+          )}
+        >
+          {row
+            .organizationName
+            ?.charAt(0)}
+        </Avatar>
+      ),
+    },
+
+
+    {
+      field:
+        "organizationName",
+
+      headerName:
+        "Organization",
+
+      flex: 1.2,
+    },
+
+
+    {
+      field: "userName",
+
+      headerName: "User",
+
+      flex: 1,
+
+      valueGetter: (
+        _value,
+        row
+      ) => {
+
+        if (
+          typeof row.user ===
+          "string"
+        ) {
+          return "-";
+        }
+
+        return (
+          row.user.name ??
+          "-"
+        );
+      },
+    },
+
+
+    {
+      field: "email",
+
+      headerName: "Email",
+
+      flex: 1.2,
+
+      valueGetter: (
+        _value,
+        row
+      ) => {
+
+        if (
+          typeof row.user ===
+          "string"
+        ) {
+          return "-";
+        }
+
+        return (
+          row.user.email ??
+          "-"
+        );
+      },
+    },
+
+
+    {
+      field:
+        "registrationNumber",
+
+      headerName:
+        "Registration No.",
+
+      flex: 1,
+    },
+
+
+    {
+      field:
+        "ministryApproval",
+
+      headerName:
+        "Approval",
+
+      width: 120,
+
+      renderCell: ({
+        row,
+      }) => (
+
+        <Chip
+          size="small"
+
+          label={
+            row.ministryApproval
+              ? "Approved"
+              : "Pending"
+          }
+
+          color={
+            row.ministryApproval
+              ? "success"
+              : "warning"
+          }
+        />
+      ),
+    },
+
+
+    {
+      field:
+        "accountStatus",
+
+      headerName:
+        "Status",
+
+      width: 110,
+
+      renderCell: ({
+        row,
+      }) => {
+
+        const blocked = row.isBlocked ?? false;
+
+        return (
+          <Chip
+            size="small"
+
+            label={
+              blocked
+                ? "Blocked"
+                : "Active"
+            }
+
+            color={
+              blocked
+                ? "error"
+                : "success"
+            }
+          />
+        );
+      },
+    },
+
+
+    {
+      field: "actions",
+
+      headerName:
+        "Actions",
+
+      width: 250,
+
+      sortable: false,
+
+      filterable: false,
+
+      renderCell: ({
+        row,
+      }) => {
+
+        const blocked = row.isBlocked ?? false;
+
+        return (
+
+          <Stack
+            direction="row"
+            spacing={0.5}
+          >
+
+            <Tooltip
+              title="View"
             >
-              <TableCell>
-                <Stack
-                  sx={{direction:"row",
-                  spacing:2,
-                  alignItems:"center"}}
+              <IconButton
+                color="primary"
+
+                onClick={() =>
+                  onView(
+                    row._id
+                  )
+                }
+              >
+                <VisibilityIcon />
+              </IconButton>
+            </Tooltip>
+
+
+            <Tooltip
+              title="Edit"
+            >
+              <IconButton
+                color="primary"
+
+                onClick={() =>
+                  onEdit(
+                    row._id
+                  )
+                }
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+
+
+            {!row
+              .ministryApproval &&
+              onApprove && (
+
+              <Tooltip
+                title=
+                  "Approve NGO"
+              >
+                <IconButton
+                  color="success"
+
+                  onClick={() =>
+                    onApprove(
+                      row._id
+                    )
+                  }
                 >
-                  <Avatar
-                    src={ngo.profileImage}
-                    alt={ngo.name}
-                  />
+                  <VerifiedIcon />
+                </IconButton>
+              </Tooltip>
+            )}
 
-                  <Typography>
-                    {ngo.name}
-                  </Typography>
-                </Stack>
-              </TableCell>
 
-              <TableCell>
-                {ngo.email}
-              </TableCell>
+            {blocked ? (
 
-              <TableCell>
-                {ngo.phone}
-              </TableCell>
+              <Tooltip
+                title="Unblock"
+              >
+                <IconButton
+                  color="success"
 
-              <TableCell>
-                {ngo.role}
-              </TableCell>
-
-              <TableCell>
-                <Chip
-                  size="small"
-                  color={
-                    ngo.isVerified
-                      ? "success"
-                      : "warning"
+                  onClick={() =>
+                    onUnblock(
+                      row._id
+                    )
                   }
-                  label={
-                    ngo.isVerified
-                      ? "Verified"
-                      : "Pending"
+                >
+                  <CheckCircleIcon />
+                </IconButton>
+              </Tooltip>
+
+            ) : (
+
+              <Tooltip
+                title="Block"
+              >
+                <IconButton
+                  color="warning"
+
+                  onClick={() =>
+                    onBlock(
+                      row._id
+                    )
                   }
-                />
-              </TableCell>
+                >
+                  <BlockIcon />
+                </IconButton>
+              </Tooltip>
+            )}
 
-              <TableCell>
-                <Chip
-                  size="small"
-                  color={
-                    ngo.isBlocked
-                      ? "error"
-                      : "success"
+
+            {onDelete && (
+
+              <Tooltip
+                title="Delete"
+              >
+                <IconButton
+                  color="error"
+
+                  onClick={() =>
+                    onDelete(
+                      row._id
+                    )
                   }
-                  label={
-                    ngo.isBlocked
-                      ? "Blocked"
-                      : "Active"
-                  }
-                />
-              </TableCell>
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
 
-              <TableCell align="center">
+          </Stack>
+        );
+      },
+    },
+  ];
 
-                <Tooltip title="View">
-                  <IconButton
-                    onClick={() =>
-                      onView(ngo._id)
-                    }
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
-                </Tooltip>
 
-                <Tooltip title="Edit">
-                  <IconButton
-                    color="primary"
-                    onClick={() =>
-                      onEdit(ngo._id)
-                    }
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
+  return (
+    <DataGrid
+      autoHeight
 
-                {ngo.isBlocked ? (
-                  <Tooltip title="Unblock">
-                    <IconButton
-                      color="success"
-                      onClick={() =>
-                        onUnblock(
-                          ngo._id
-                        )
-                      }
-                    >
-                      <CheckCircleIcon />
-                    </IconButton>
-                  </Tooltip>
-                ) : (
-                  <Tooltip title="Block">
-                    <IconButton
-                      color="error"
-                      onClick={() =>
-                        onBlock(
-                          ngo._id
-                        )
-                      }
-                    >
-                      <BlockIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
+      rows={ngos}
 
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+      columns={columns}
 
-      </Table>
-    </TableContainer>
+      getRowId={(
+        row
+      ) => row._id}
+
+      disableRowSelectionOnClick
+
+      pageSizeOptions={[
+        10,
+        20,
+        50,
+      ]}
+
+      initialState={{
+        pagination: {
+          paginationModel: {
+            page: 0,
+            pageSize: 10,
+          },
+        },
+      }}
+    />
   );
 }

@@ -65,6 +65,7 @@ export const baseApi = createApi({
     "Learning",
     "Notification",
     "Scheme",
+    "MyScheme",
     "Help",
     "Farmers",
     "Reports",
@@ -74,6 +75,11 @@ export const baseApi = createApi({
     "Analytics",
     "Statistics",
     "Workshops",
+    "MyCourses",
+"AdminCourses",
+"AdminCourse",
+"AdminEnrollments",
+"CropCalendar"
   ],
 
   endpoints: () => ({}),
